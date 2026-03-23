@@ -123,7 +123,7 @@ ls staging/cursor-skills/
 python3 tools/sync.py deploy --merge
 ```
 
-这样就实现了：你在任意工具里写的新 skill → 通过 `import` 汇聚 → 通过 `deploy --merge` 分发到其他工具，各工具原有 skill 不受影响。
+这样就实现了：各工具的 skill 先通过 `import` 汇聚到 Claude 统一管理，整理好后通过 `deploy --merge` 分发到其他工具，各工具原有 skill 不受影响。
 
 ### 持续自动同步
 
