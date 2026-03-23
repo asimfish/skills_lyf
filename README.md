@@ -299,21 +299,28 @@ python3 tools/sync.py watch --interval 10
 
 ### 典型工作流
 
-**在 Claude Code 里新建一个 skill 后，同步到所有工具：**
-
+**日常新建 skill 后同步到所有工具：**
 ```bash
 # 1. 用 /create-skill 在 Claude Code 里新建 skill
-# 2. 检查状态
-python3 tools/sync.py status
-
-# 3. 预览转换结果
+# 2. 预览转换结果（不修改 live）
 python3 tools/sync.py stage
-
-# 4. 确认无误后一键部署到全部工具
+# 3. 一键部署到全部工具
 python3 tools/sync.py deploy
 ```
 
-**开启后台守护 + 手动 deploy：**
+**审计 + 打包分发给朋友（Cursor 版）：**
+```bash
+# 先看哪些 skill 有问题
+python3 tools/sync.py audit
+# 打包安全的 skill 为 Cursor 格式
+python3 tools/sync.py pack --format cursor --out ~/Desktop/cursor-skills.zip
+# 朋友收到后增量安装，不覆盖已有配置
+unzip cursor-skills.zip -d ~/.cursor/
+# 或用 merge 模式（更安全）
+python3 tools/sync.py deploy --merge
+```
+
+**后台守护 + 随时 deploy：**
 ```bash
 python3 tools/sync.py watch &   # 后台自动 stage
 # ... 工作中新建 skill ...
