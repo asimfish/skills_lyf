@@ -1,33 +1,41 @@
 #!/usr/bin/env python3
-"""skill sync tool — Claude Code is source of truth.
+"""skill sync tool — Claude Code is canonical source of truth.
+
+Supported tools:
+  claude   ~/.claude/skills/NAME/SKILL.md   (canonical)
+  codex    ~/.codex/skills/NAME/SKILL.md    (identical format, bidirectional)
+  cursor   ~/.cursor/skills-cursor/NAME/SKILL.md  (simplified frontmatter)
+  mdc      ~/.cursor/rules/NAME.mdc         (globs/alwaysApply format)
+  openclaw clawd/skills/NAME/SKILL.md       (description-as-instructions format)
 
 Commands:
-  status          show counts in all dirs
-  stage           convert Claude skills → repo staging dirs (SAFE, no live touch)
-  deploy          backup live dirs then copy staging → live (explicit opt-in)
-  watch           poll Claude dir, auto-stage every N seconds (no auto-deploy)
-
-Staging dirs (inside repo, git-ignored):
-  skills_lyf/staging/cursor-skills/
-  skills_lyf/staging/cursor-mdc/
+  status          show skill counts across all tools
+  stage           convert claude → staging/ (SAFE, never touches live)
+  deploy          backup live dirs, copy staging → live
+  watch           poll claude dir, auto-stage on changes (no auto-deploy)
 """
-import argparse, shutil, sys, time
+import argparse, json, re, shutil, sys, textwrap, time
 from datetime import datetime
 from pathlib import Path
 
-# ── Paths ────────────────────────────────────────────────────────────────────
-REPO   = Path(__file__).resolve().parent.parent
-STAGE  = REPO / "staging"
+# ── Paths ─────────────────────────────────────────────────────────────────────
+REPO         = Path(__file__).resolve().parent.parent
+STAGE        = REPO / "staging"
 
-CLAUDE_DIR  = Path.home() / ".claude" / "skills"
-CURSOR_DIR  = Path.home() / ".cursor" / "skills-cursor"
-MDC_DIR     = Path.home() / ".cursor" / "rules" / "skills"
+CLAUDE_DIR   = Path.home() / ".claude" / "skills"
+CODEX_DIR    = Path.home() / ".codex" / "skills"
+CURSOR_DIR   = Path.home() / ".cursor" / "skills-cursor"
+MDC_DIR      = Path.home() / ".cursor" / "rules" / "skills"
+OPENCLAW_DIR = Path.home() / "clawd" / "skills"
 
-STAGE_CURSOR = STAGE / "cursor-skills"
-STAGE_MDC    = STAGE / "cursor-mdc"
+STAGE_CODEX    = STAGE / "codex-skills"
+STAGE_CURSOR   = STAGE / "cursor-skills"
+STAGE_MDC      = STAGE / "cursor-mdc"
+STAGE_OPENCLAW = STAGE / "openclaw-skills"
 
 # ── Frontmatter helpers ───────────────────────────────────────────────────────
 def parse_frontmatter(text: str):
+    """Returns (meta_dict, body_str). meta values are raw strings."""
     if not text.startswith("---"):
         return {}, text
     parts = text.split("---", 2)
@@ -47,168 +55,348 @@ def build_frontmatter(meta: dict) -> str:
     lines.append("---")
     return "\n".join(lines) + "\n"
 
-# ── Converters ────────────────────────────────────────────────────────────────
-def claude_to_cursor_skill(src: Path, dst_root: Path) -> bool:
-    """Claude SKILL.md → Cursor SKILL.md (staging only)"""
-    skill_md = src / "SKILL.md"
+def write_if_changed(path: Path, content: str):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists() or path.read_text(encoding="utf-8") != content:
+        path.write_text(content, encoding="utf-8")
+        return True
+    return False
+
+# ── Claude → Codex (identical format, just copy) ─────────────────────────────
+def claude_to_codex(src_dir: Path, dst_dir: Path) -> bool:
+    skill_md = src_dir / "SKILL.md"
+    if not skill_md.exists():
+        return False
+    dst = dst_dir / src_dir.name
+    dst.mkdir(parents=True, exist_ok=True)
+    # Copy all files/dirs in skill dir
+    changed = False
+    for f in src_dir.iterdir():
+        d = dst / f.name
+        if f.is_dir():
+            if not d.exists():
+                shutil.copytree(f, d)
+                changed = True
+        elif f.suffix in (".md", ".txt", ".sh", ".py", ".toml", ".json"):
+            if write_if_changed(d, f.read_text(encoding="utf-8")):
+                changed = True
+        elif not d.exists():
+            shutil.copy2(f, d)
+            changed = True
+    return changed
+
+# ── Codex → Claude (only new skills not in Claude) ───────────────────────────
+def codex_to_claude(src_dir: Path, dst_dir: Path) -> bool:
+    skill_md = src_dir / "SKILL.md"
+    if not skill_md.exists():
+        return False
+    dst_skill = dst_dir / src_dir.name / "SKILL.md"
+    if dst_skill.exists():
+        return False  # Claude is source of truth
+    dst = dst_dir / src_dir.name
+    dst.mkdir(parents=True, exist_ok=True)
+    for f in src_dir.iterdir():
+        if f.is_dir():
+            shutil.copytree(f, dst / f.name)
+        else:
+            shutil.copy2(f, dst / f.name)
+    return True
+
+# ── Claude → Cursor skill ─────────────────────────────────────────────────────
+def claude_to_cursor(src_dir: Path, dst_dir: Path) -> bool:
+    skill_md = src_dir / "SKILL.md"
     if not skill_md.exists():
         return False
     text = skill_md.read_text(encoding="utf-8")
     meta, body = parse_frontmatter(text)
-    name = meta.get("name", src.name)
-    desc = meta.get("description", "")
-
+    name = meta.get("name") or src_dir.name
     out_meta = {"name": name}
-    if desc:
-        out_meta["description"] = desc
-
+    if meta.get("description"):
+        out_meta["description"] = meta["description"]
     new_text = build_frontmatter(out_meta) + "\n" + body
-    out_dir = dst_root / name
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "SKILL.md"
-    if out_path.exists() and out_path.read_text(encoding="utf-8") == new_text:
-        return False
-    out_path.write_text(new_text, encoding="utf-8")
-    return True
+    return write_if_changed(dst_dir / name / "SKILL.md", new_text)
 
-def claude_to_mdc(src: Path, dst_root: Path) -> bool:
-    """Claude SKILL.md → Cursor .mdc (staging only)"""
-    skill_md = src / "SKILL.md"
+# ── Claude → Cursor MDC ───────────────────────────────────────────────────────
+def claude_to_mdc(src_dir: Path, dst_dir: Path) -> bool:
+    skill_md = src_dir / "SKILL.md"
     if not skill_md.exists():
         return False
     text = skill_md.read_text(encoding="utf-8")
     meta, body = parse_frontmatter(text)
-    name = meta.get("name", src.name)
+    name = meta.get("name") or src_dir.name
     desc = meta.get("description", "")
-
-    out_meta = {"description": desc, "globs": "", "alwaysApply": "false"}
+    # Truncate description for MDC (single line)
+    short_desc = desc[:120] + "..." if len(desc) > 120 else desc
+    out_meta = {
+        "description": short_desc,
+        "globs": "",
+        "alwaysApply": "false",
+    }
     new_text = build_frontmatter(out_meta) + "\n" + body
-    dst_root.mkdir(parents=True, exist_ok=True)
-    out_path = dst_root / f"{name}.mdc"
-    if out_path.exists() and out_path.read_text(encoding="utf-8") == new_text:
+    return write_if_changed(dst_dir / f"{name}.mdc", new_text)
+
+# ── Claude → OpenClaw ─────────────────────────────────────────────────────────
+def claude_to_openclaw(src_dir: Path, dst_dir: Path) -> bool:
+    """Convert Claude skill to OpenClaw format.
+    OpenClaw uses description field as short summary;
+    full instructions go in body under ## Instructions.
+    """
+    skill_md = src_dir / "SKILL.md"
+    if not skill_md.exists():
         return False
-    out_path.write_text(new_text, encoding="utf-8")
+    text = skill_md.read_text(encoding="utf-8")
+    meta, body = parse_frontmatter(text)
+    name = meta.get("name") or src_dir.name
+    desc = meta.get("description", "")
+    # Short description (first sentence or 120 chars)
+    short = desc.split("。")[0].split(". ")[0]
+    short = short[:120] if len(short) > 120 else short
+
+    out_meta = {"name": name, "description": short}
+    # Ensure body has ## Instructions section
+    if "## Instructions" not in body and "## " in body:
+        new_body = body  # keep original structure
+    elif "## Instructions" not in body:
+        new_body = "## Instructions\n\n" + body
+    else:
+        new_body = body
+
+    new_text = build_frontmatter(out_meta) + "\n" + new_body
+    return write_if_changed(dst_dir / name / "SKILL.md", new_text)
+
+# ── OpenClaw → Claude (only new skills) ──────────────────────────────────────
+def openclaw_to_claude(src_dir: Path, dst_dir: Path) -> bool:
+    skill_md = src_dir / "SKILL.md"
+    if not skill_md.exists():
+        return False
+    dst_skill = dst_dir / src_dir.name / "SKILL.md"
+    if dst_skill.exists():
+        return False  # Claude is source of truth
+    text = skill_md.read_text(encoding="utf-8")
+    meta, body = parse_frontmatter(text)
+    name = meta.get("name") or src_dir.name
+    desc = meta.get("description", "")
+    # description in OpenClaw can be very long; take first sentence as Claude description
+    short = desc.split("。")[0].split(". ")[0]
+    short = short[:200] if len(short) > 200 else short
+    out_meta = {"name": name, "origin": "openclaw-migration"}
+    if short:
+        out_meta["description"] = short
+    dst_dir2 = dst_dir / name
+    dst_dir2.mkdir(parents=True, exist_ok=True)
+    write_if_changed(dst_dir2 / "SKILL.md",
+        build_frontmatter(out_meta) + "\n" + body)
     return True
 
-# ── Commands ─────────────────────────────────────────────────────────────────
-def cmd_status(_args):
-    def count(p): return len(list(p.glob("*/SKILL.md"))) if p.exists() else 0
-    def countf(p, pat): return len(list(p.glob(pat))) if p.exists() else 0
-    print(f"Claude skills (live) : {count(CLAUDE_DIR)}")
-    print(f"Cursor skills (live) : {count(CURSOR_DIR)}")
-    print(f"MDC rules (live)     : {countf(MDC_DIR, '*.mdc')}")
-    print(f"Staging cursor       : {count(STAGE_CURSOR)}")
-    print(f"Staging MDC          : {countf(STAGE_MDC, '*.mdc')}")
+# ── Cursor skill → Claude (only new) ─────────────────────────────────────────
+def cursor_to_claude(src_dir: Path, dst_dir: Path) -> bool:
+    skill_md = src_dir / "SKILL.md"
+    if not skill_md.exists():
+        return False
+    text = skill_md.read_text(encoding="utf-8")
+    meta, body = parse_frontmatter(text)
+    name = meta.get("name") or src_dir.name
+    dst_skill = dst_dir / name / "SKILL.md"
+    if dst_skill.exists():
+        return False
+    out_meta = {"name": name, "origin": "cursor-migration"}
+    if meta.get("description"):
+        out_meta["description"] = meta["description"]
+    dst2 = dst_dir / name
+    dst2.mkdir(parents=True, exist_ok=True)
+    write_if_changed(dst2 / "SKILL.md",
+        build_frontmatter(out_meta) + "\n" + body)
+    return True
 
-def cmd_stage(_args):
-    """Convert Claude → staging dirs. Never touches live Cursor/MDC dirs."""
+# ── Batch helpers ──────────────────────────────────────────────────────────────
+def batch(src_dir: Path, dst_dir: Path, fn) -> int:
+    if not src_dir.exists():
+        return 0
+    n = 0
+    for d in src_dir.iterdir():
+        if d.is_dir() and fn(d, dst_dir):
+            n += 1
+    return n
+
+def batch_mdc(src_dir: Path, dst_dir: Path) -> int:
+    if not src_dir.exists():
+        return 0
+    n = 0
+    for d in src_dir.iterdir():
+        if d.is_dir() and claude_to_mdc(d, dst_dir):
+            n += 1
+    return n
+
+# ── Commands ──────────────────────────────────────────────────────────────────
+def cmd_status():
+    def count_skills(d: Path) -> int:
+        if not d.exists(): return 0
+        return sum(1 for x in d.iterdir() if x.is_dir() and (x / "SKILL.md").exists())
+    def count_mdc(d: Path) -> int:
+        if not d.exists(): return 0
+        return sum(1 for x in d.iterdir() if x.suffix == ".mdc")
+    print(f"Claude skills (live)   : {count_skills(CLAUDE_DIR)}")
+    print(f"Codex skills (live)    : {count_skills(CODEX_DIR)}")
+    print(f"Cursor skills (live)   : {count_skills(CURSOR_DIR)}")
+    print(f"MDC rules (live)       : {count_mdc(MDC_DIR)}")
+    print(f"OpenClaw skills (live) : {count_skills(OPENCLAW_DIR)}")
+    print(f"Staging codex          : {count_skills(STAGE_CODEX)}")
+    print(f"Staging cursor         : {count_skills(STAGE_CURSOR)}")
+    print(f"Staging MDC            : {count_mdc(STAGE_MDC)}")
+    print(f"Staging openclaw       : {count_skills(STAGE_OPENCLAW)}")
+
+def cmd_import():
+    """Import new skills from Codex/Cursor/OpenClaw into Claude (never overwrites)."""
+    c2cl = batch(CODEX_DIR, CLAUDE_DIR, codex_to_claude)
+    cur2cl = batch(CURSOR_DIR, CLAUDE_DIR, cursor_to_claude)
+    oc2cl = batch(OPENCLAW_DIR, CLAUDE_DIR, openclaw_to_claude)
+    ts = datetime.now().strftime("%H:%M:%S")
+    print(f"[{ts}] Import to Claude complete:")
+    print(f"  codex→claude    : {c2cl} new skills")
+    print(f"  cursor→claude   : {cur2cl} new skills")
+    print(f"  openclaw→claude : {oc2cl} new skills")
+    if c2cl + cur2cl + oc2cl == 0:
+        print("  (nothing new — Claude already has all skills)")
+
+def cmd_stage():
+    """Convert Claude skills to all target formats in staging/. Never touches live."""
+    STAGE_CODEX.mkdir(parents=True, exist_ok=True)
     STAGE_CURSOR.mkdir(parents=True, exist_ok=True)
     STAGE_MDC.mkdir(parents=True, exist_ok=True)
+    STAGE_OPENCLAW.mkdir(parents=True, exist_ok=True)
 
-    n_cursor = n_mdc = 0
-    for skill_dir in sorted(CLAUDE_DIR.iterdir()):
-        if not skill_dir.is_dir():
-            continue
-        if claude_to_cursor_skill(skill_dir, STAGE_CURSOR):
-            n_cursor += 1
-        if claude_to_mdc(skill_dir, STAGE_MDC):
-            n_mdc += 1
+    n_codex   = batch(CLAUDE_DIR, STAGE_CODEX,    claude_to_codex)
+    n_cursor  = batch(CLAUDE_DIR, STAGE_CURSOR,   claude_to_cursor)
+    n_mdc     = batch_mdc(CLAUDE_DIR, STAGE_MDC)
+    n_openclaw = batch(CLAUDE_DIR, STAGE_OPENCLAW, claude_to_openclaw)
 
     ts = datetime.now().strftime("%H:%M:%S")
-    print(f"[{ts}] Stage complete: {n_cursor} cursor-skills, {n_mdc} MDC files updated")
-    print(f"  staging/cursor-skills/ → {STAGE_CURSOR}")
-    print(f"  staging/cursor-mdc/    → {STAGE_MDC}")
-    print("  (nothing written to ~/.cursor — run 'deploy' to push live)")
+    print(f"[{ts}] Stage complete (nothing written to live dirs):")
+    print(f"  claude→codex    : {n_codex}")
+    print(f"  claude→cursor   : {n_cursor}")
+    print(f"  claude→mdc      : {n_mdc}")
+    print(f"  claude→openclaw : {n_openclaw}")
+    print(f"  staging dirs    : {STAGE}")
+    print(f"  (run 'deploy' to push to live)")
 
-def _backup(src: Path, label: str):
-    if not src.exists():
-        return
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    bak = STAGE / "backups" / f"{label}_{ts}"
-    shutil.copytree(src, bak)
-    print(f"  Backed up {src} → {bak}")
-
-def cmd_deploy(args):
+def cmd_deploy(targets: list):
     """Backup live dirs then copy staging → live."""
-    if not STAGE_CURSOR.exists() or not any(STAGE_CURSOR.iterdir()):
-        print("Staging is empty. Run 'stage' first.")
-        sys.exit(1)
+    all_targets = ["codex", "cursor", "mdc", "openclaw"]
+    if not targets:
+        targets = all_targets
 
-    print("Backing up live Cursor dirs...")
-    _backup(CURSOR_DIR, "cursor-skills")
-    _backup(MDC_DIR,    "cursor-mdc")
+    ts_label = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_base = STAGE / "backups" / ts_label
 
-    # Copy staging → live (preserve existing non-staged files)
-    n_cursor = n_mdc = 0
-    for src in sorted(STAGE_CURSOR.iterdir()):
-        if not src.is_dir():
+    deploy_map = {
+        "codex":    (STAGE_CODEX,    CODEX_DIR),
+        "cursor":   (STAGE_CURSOR,   CURSOR_DIR),
+        "mdc":      (STAGE_MDC,      MDC_DIR),
+        "openclaw": (STAGE_OPENCLAW, OPENCLAW_DIR),
+    }
+
+    print("Backing up live dirs...")
+    for t in targets:
+        stage_src, live_dst = deploy_map[t]
+        if not stage_src.exists():
+            print(f"  [skip] staging/{t} not found, run 'stage' first")
             continue
-        dst = CURSOR_DIR / src.name
-        if not dst.exists():
-            shutil.copytree(src, dst)
-            n_cursor += 1
-        else:
-            # Only update SKILL.md if changed
-            sp = src / "SKILL.md"
-            dp = dst / "SKILL.md"
-            if sp.exists() and (not dp.exists() or sp.read_text() != dp.read_text()):
-                shutil.copy2(sp, dp)
-                n_cursor += 1
+        if live_dst.exists():
+            bk = backup_base / t
+            shutil.copytree(live_dst, bk)
+            print(f"  Backed up {live_dst} → {bk}")
 
-    CURSOR_DIR.mkdir(parents=True, exist_ok=True)
-    MDC_DIR.mkdir(parents=True, exist_ok=True)
-    for src in sorted(STAGE_MDC.glob("*.mdc")):
-        dst = MDC_DIR / src.name
-        if not dst.exists() or src.read_text() != dst.read_text():
-            shutil.copy2(src, dst)
-            n_mdc += 1
+    print("Deploying...")
+    counts = {}
+    for t in targets:
+        stage_src, live_dst = deploy_map[t]
+        if not stage_src.exists():
+            counts[t] = 0
+            continue
+        if t == "mdc":
+            live_dst.mkdir(parents=True, exist_ok=True)
+            n = 0
+            for f in stage_src.iterdir():
+                if f.suffix == ".mdc":
+                    dst = live_dst / f.name
+                    content = f.read_text(encoding="utf-8")
+                    if write_if_changed(dst, content):
+                        n += 1
+            counts[t] = n
+        else:
+            live_dst.mkdir(parents=True, exist_ok=True)
+            n = 0
+            for d in stage_src.iterdir():
+                if d.is_dir():
+                    dst = live_dst / d.name
+                    if dst.is_symlink():
+                        dst.unlink()
+                    elif dst.exists():
+                        shutil.rmtree(dst)
+                    shutil.copytree(d, dst)
+                    n += 1
+            counts[t] = n
 
     ts = datetime.now().strftime("%H:%M:%S")
-    print(f"[{ts}] Deploy complete: {n_cursor} cursor-skills, {n_mdc} MDC files")
+    print(f"[{ts}] Deploy complete:")
+    for t, n in counts.items():
+        print(f"  {t:10s}: {n} skills/files")
+    print(f"  backup at: {backup_base}")
 
-def cmd_watch(args):
-    interval = int(args.interval)
+def cmd_watch(interval: int):
+    """Poll Claude dir; auto-stage when changes detected."""
     print(f"Watching {CLAUDE_DIR} every {interval}s (Ctrl-C to stop)...")
-    print("Auto-staging only. Run 'deploy' manually to push to live.")
-    seen = {}
+    print("Note: auto-stage only. Run 'deploy' manually to push to live.")
+    last_snapshot = {}
+
+    def snapshot():
+        s = {}
+        if not CLAUDE_DIR.exists():
+            return s
+        for d in CLAUDE_DIR.iterdir():
+            sm = d / "SKILL.md"
+            if sm.exists():
+                s[d.name] = sm.stat().st_mtime
+        return s
+
+    last_snapshot = snapshot()
     while True:
-        changed = []
-        if CLAUDE_DIR.exists():
-            for skill_dir in CLAUDE_DIR.iterdir():
-                sm = skill_dir / "SKILL.md"
-                if sm.exists():
-                    mtime = sm.stat().st_mtime
-                    if seen.get(str(sm)) != mtime:
-                        seen[str(sm)] = mtime
-                        changed.append(skill_dir)
-        if changed:
-            STAGE_CURSOR.mkdir(parents=True, exist_ok=True)
-            STAGE_MDC.mkdir(parents=True, exist_ok=True)
-            n_c = n_m = 0
-            for skill_dir in changed:
-                if claude_to_cursor_skill(skill_dir, STAGE_CURSOR): n_c += 1
-                if claude_to_mdc(skill_dir, STAGE_MDC): n_m += 1
-            ts = datetime.now().strftime("%H:%M:%S")
-            print(f"[{ts}] {len(changed)} changed → staged {n_c} cursor, {n_m} MDC")
         time.sleep(interval)
+        cur = snapshot()
+        added   = [k for k in cur if k not in last_snapshot]
+        changed = [k for k in cur if k in last_snapshot and cur[k] != last_snapshot[k]]
+        removed = [k for k in last_snapshot if k not in cur]
+        if added or changed or removed:
+            ts = datetime.now().strftime("%H:%M:%S")
+            print(f"[{ts}] Changes detected: +{len(added)} ~{len(changed)} -{len(removed)}")
+            cmd_stage()
+        last_snapshot = cur
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 def main():
-    p = argparse.ArgumentParser(description="Skill sync tool")
+    p = argparse.ArgumentParser(description="Skill sync: Claude ↔ Codex / Cursor / MDC / OpenClaw")
     sub = p.add_subparsers(dest="cmd")
 
-    sub.add_parser("status")
-    sub.add_parser("stage")
-    deploy_p = sub.add_parser("deploy")
-    watch_p  = sub.add_parser("watch")
-    watch_p.add_argument("--interval", default=3)
+    sub.add_parser("status",  help="Show skill counts across all tools")
+    sub.add_parser("import",  help="Import new skills from Codex/Cursor/OpenClaw into Claude")
+    sub.add_parser("stage",   help="Convert Claude → staging/ (safe, no live changes)")
+
+    dp = sub.add_parser("deploy", help="Backup + deploy staging → live")
+    dp.add_argument("targets", nargs="*",
+        metavar="{codex,cursor,mdc,openclaw}",
+        help="Which tools to deploy (default: all)")
+
+    wp = sub.add_parser("watch", help="Auto-stage on Claude skill changes")
+    wp.add_argument("--interval", type=int, default=5, help="Poll interval seconds (default: 5)")
 
     args = p.parse_args()
-    if   args.cmd == "status": cmd_status(args)
-    elif args.cmd == "stage":  cmd_stage(args)
-    elif args.cmd == "deploy": cmd_deploy(args)
-    elif args.cmd == "watch":  cmd_watch(args)
-    else: p.print_help()
+    if args.cmd == "status":        cmd_status()
+    elif args.cmd == "import":      cmd_import()
+    elif args.cmd == "stage":       cmd_stage()
+    elif args.cmd == "deploy":      cmd_deploy(getattr(args, "targets", []))
+    elif args.cmd == "watch":       cmd_watch(args.interval)
+    else:
+        p.print_help()
 
 if __name__ == "__main__":
     main()
