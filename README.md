@@ -265,7 +265,19 @@ ls staging/backups/
 rm -rf ~/.cursor/skills-cursor && cp -r staging/backups/20260323_210753/cursor ~/.cursor/skills-cursor
 ```
 
-#### 4. 从其他工具导入新 skill
+#### 6. 增量合并（不覆盖已有配置）
+
+```bash
+# 只新增用户没有的 skill，已有的一律跳过
+python3 tools/sync.py deploy --merge
+
+# 只对指定工具做增量合并
+python3 tools/sync.py deploy cursor mdc --merge
+```
+
+适合把 skill 包分发给他人后，对方用 `--merge` 安全合并，不会覆盖他们已有的配置。
+
+#### 7. 从其他工具导入新 skill
 
 ```bash
 python3 tools/sync.py import
@@ -273,7 +285,7 @@ python3 tools/sync.py import
 
 扫描 Codex / Cursor / OpenClaw 中存在但 Claude 中没有的 skill，导入到 `~/.claude/skills/`（不覆盖已有）。
 
-#### 5. 后台自动 stage 守护进程
+#### 8. 后台自动 stage 守护进程
 
 ```bash
 # 启动（每5秒检测 Claude skills 变化，自动 stage）
