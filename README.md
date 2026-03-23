@@ -230,15 +230,17 @@ skills_lyf/
 
 ## 跨工具 Skill 同步
 
-这是本仓库的核心功能。不同 AI 工具各有自己的 skill 格式，手动维护多份配置非常繁琐。
+不同 AI 工具各有自己的 skill 格式，手动维护多份配置非常繁琐。`tools/sync.py` 解决这个问题：
 
-`tools/sync.py` 以 **Claude Code 为唯一来源（source of truth）**，自动转换并同步到全部4个工具。
+- **双向互通**：各工具的 skill 可互相导入，Claude 作为中间格式（canonical format）
+- **非破坏性**：`import` 和 `deploy --merge` 均只新增，不覆盖已有 skill
+- **格式自动转换**：一份 skill，自动适配各工具的 frontmatter 格式
 
 ### 支持的工具及格式
 
 | 工具 | 路径 | 格式说明 |
 |------|------|----------|
-| Claude Code | `~/.claude/skills/NAME/SKILL.md` | 完整 frontmatter，canonical |
+| Claude Code | `~/.claude/skills/NAME/SKILL.md` | 完整 frontmatter，canonical 格式 |
 | Codex CLI | `~/.codex/skills/NAME/SKILL.md` | 与 Claude 格式完全相同，双向同步 |
 | Cursor | `~/.cursor/skills-cursor/NAME/SKILL.md` | 简化 frontmatter（name + description）|
 | Cursor MDC | `~/.cursor/rules/skills/NAME.mdc` | globs + alwaysApply 格式 |
@@ -247,20 +249,25 @@ skills_lyf/
 ### 工作原理
 
 ```
-~/.claude/skills/               ← 唯一编辑入口
-        │
-        ├──→ staging/codex-skills/    (预览)
-        ├──→ staging/cursor-skills/   (预览)
-        ├──→ staging/cursor-mdc/      (预览)
-        ├──→ staging/openclaw-skills/ (预览)
-        │
-        └── deploy ──→ ~/.codex/skills/
-                   ├──→ ~/.cursor/skills-cursor/
-                   ├──→ ~/.cursor/rules/skills/
-                   └──→ ~/clawd/skills/
+Codex / Cursor / OpenClaw ──→ import ──→ ~/.claude/skills/   ← 汇聚中心
+                                                 │
+                                    stage（预览，不改 live 目录）
+                                                 │
+                               ├──→ staging/codex-skills/
+                               ├──→ staging/cursor-skills/
+                               ├──→ staging/cursor-mdc/
+                               └──→ staging/openclaw-skills/
+                                                 │
+                                  deploy --merge（增量，推荐）
+                                  deploy        （覆盖，自动备份）
+                                                 │
+                          ├──→ ~/.codex/skills/
+                          ├──→ ~/.cursor/skills-cursor/
+                          ├──→ ~/.cursor/rules/skills/
+                          └──→ ~/clawd/skills/
 ```
 
-`import` 命令支持从 Codex / Cursor / OpenClaw 反向导入新 skill 到 Claude（不覆盖已有）。
+`import` 扫描 Codex / Cursor / OpenClaw 中有但 Claude 没有的 skill，单向导入到 Claude（不覆盖已有）。
 
 ### 命令说明
 
