@@ -602,7 +602,7 @@ def main():
     elif args.cmd == "deploy":      cmd_deploy(getattr(args, "targets", []), merge=getattr(args, "merge", False))
     elif args.cmd == "watch":       cmd_watch(args.interval)
     elif args.cmd == "audit":       cmd_audit(output_json=getattr(args, "output_json", False))
-    elif args.cmd == "pack":        cmd_pack(getattr(args, "out", None))
+    elif args.cmd == "pack":        cmd_pack(getattr(args, "out", None), fmt=getattr(args, "fmt", "claude"))
     else:
         p.print_help()
 
