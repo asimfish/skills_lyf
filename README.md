@@ -7,7 +7,7 @@
 
 本仓库汇总了在 macOS 上使用 Claude Code、Codex CLI、Cursor 进行 AI 辅助开发的全套配置：
 
-- **128 个 Claude Code skills**（含 [ARIS](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep) 研究自动化全集）
+- **162 个 Claude Code skills**（含 [ARIS](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep) 研究自动化全集）
 - **21 个 subagents**（code-reviewer、architect、ml-debugger 等）
 - **14 条 rules**（编码规范、安全、测试等）
 - **3 个自研 MCP servers**（codex-dispatch、git-orchestra、llm-chat）
@@ -73,11 +73,11 @@ vim ~/.claude/settings.json
 ### 第四步（可选）：启动跨工具 skill 同步
 
 ```bash
-# 同步 Claude skills → Cursor（自动备份原配置）
-python3 tools/sync.py deploy
+# 一键同步 Claude skills → Codex / Cursor / MDC / OpenClaw（自动备份原配置）
+python3 tools/sync.py stage && python3 tools/sync.py deploy
 
-# 或启动后台守护进程，有新 skill 时自动同步
-bash tools/watch.sh start
+# 或启动后台守护进程，有新 skill 时自动 stage
+python3 tools/sync.py watch
 ```
 
 ---
@@ -94,7 +94,7 @@ skills_lyf/
 │   ├── CLAUDE.md                 # 全局系统提示（行为规范）
 │   ├── settings.json.example     # 配置模板（密钥留空）
 │   ├── agents/                   # 21 个 subagent 定义
-│   ├── skills/                   # 128 个 skill 目录
+│   ├── skills/                   # 162 个 skill 目录
 │   ├── rules/
 │   │   ├── common/               # 9 条通用规则
 │   │   └── python/               # 5 条 Python 规则
@@ -124,23 +124,37 @@ skills_lyf/
 
 ## 跨工具 Skill 同步
 
-这是本仓库的核心功能。不同 AI 工具（Claude Code、Cursor）各有自己的 skill 格式，手动维护多份配置非常繁琐。
+这是本仓库的核心功能。不同 AI 工具各有自己的 skill 格式，手动维护多份配置非常繁琐。
 
-`tools/sync.py` 以 **Claude Code 为唯一来源（source of truth）**，自动转换并同步到其他工具。
+`tools/sync.py` 以 **Claude Code 为唯一来源（source of truth）**，自动转换并同步到全部4个工具。
+
+### 支持的工具及格式
+
+| 工具 | 路径 | 格式说明 |
+|------|------|----------|
+| Claude Code | `~/.claude/skills/NAME/SKILL.md` | 完整 frontmatter，canonical |
+| Codex CLI | `~/.codex/skills/NAME/SKILL.md` | 与 Claude 格式完全相同，双向同步 |
+| Cursor | `~/.cursor/skills-cursor/NAME/SKILL.md` | 简化 frontmatter（name + description）|
+| Cursor MDC | `~/.cursor/rules/skills/NAME.mdc` | globs + alwaysApply 格式 |
+| OpenClaw | `~/clawd/skills/NAME/SKILL.md` | description 作为 instructions 格式 |
 
 ### 工作原理
 
 ```
-~/.claude/skills/          ← 唯一编辑入口
+~/.claude/skills/               ← 唯一编辑入口
         │
-        ├──→ staging/cursor-skills/   (预览，不影响 live)
-        ├──→ staging/cursor-mdc/      (预览，不影响 live)
+        ├──→ staging/codex-skills/    (预览)
+        ├──→ staging/cursor-skills/   (预览)
+        ├──→ staging/cursor-mdc/      (预览)
+        ├──→ staging/openclaw-skills/ (预览)
         │
-        └── deploy ──→ ~/.cursor/skills-cursor/   (Cursor Agent Skills)
-                   └──→ ~/.cursor/rules/skills/    (Cursor MDC Rules)
+        └── deploy ──→ ~/.codex/skills/
+                   ├──→ ~/.cursor/skills-cursor/
+                   ├──→ ~/.cursor/rules/skills/
+                   └──→ ~/clawd/skills/
 ```
 
-**新增 Cursor-only skill** 时，sync 会自动将其导入 Claude（不覆盖已有）。
+`import` 命令支持从 Codex / Cursor / OpenClaw 反向导入新 skill 到 Claude（不覆盖已有）。
 
 ### 命令说明
 
@@ -152,11 +166,15 @@ python3 tools/sync.py status
 
 输出示例：
 ```
-Claude skills (live) : 128
-Cursor skills (live) : 5
-MDC rules (live)     : 0
-Staging cursor       : 0
-Staging MDC          : 0
+Claude skills (live)   : 162
+Codex skills (live)    : 162
+Cursor skills (live)   : 162
+MDC rules (live)       : 162
+OpenClaw skills (live) : 162
+Staging codex          : 162
+Staging cursor         : 162
+Staging MDC            : 162
+Staging openclaw       : 162
 ```
 
 #### 2. 生成预览（不修改任何 live 配置）
@@ -165,76 +183,84 @@ Staging MDC          : 0
 python3 tools/sync.py stage
 ```
 
-转换结果写入仓库内 `staging/` 目录（已加入 .gitignore），**不会修改 `~/.cursor/` 下任何文件**。
+转换结果写入仓库内 `staging/` 目录（已加入 .gitignore），**不会修改任何 live 目录**。
 
 可以先检查 staging 里的文件确认无误：
 ```bash
-ls staging/cursor-skills/   # 预览 Cursor skills
-ls staging/cursor-mdc/      # 预览 MDC rules
+ls staging/codex-skills/     # 预览 Codex skills
+ls staging/cursor-skills/    # 预览 Cursor skills
+ls staging/cursor-mdc/       # 预览 MDC rules
+ls staging/openclaw-skills/  # 预览 OpenClaw skills
 ```
 
 #### 3. 部署到 live（自动备份）
 
 ```bash
+# 部署全部工具
 python3 tools/sync.py deploy
+
+# 仅部署指定工具
+python3 tools/sync.py deploy codex cursor
+python3 tools/sync.py deploy mdc openclaw
 ```
 
-deploy 会自动：
-1. 备份当前 `~/.cursor/skills-cursor/` → `staging/backups/cursor-skills_YYYYMMDD_HHMMSS/`
-2. 将 staging 内容写入 live
-
-如果出问题，用备份还原：
+deploy 会自动备份所有 live 目录到 `staging/backups/YYYYMMDD_HHMMSS/`，如需回滚：
 ```bash
 # 查看备份
 ls staging/backups/
 
-# 还原
-cp -r staging/backups/cursor-skills_20260323_155927/* ~/.cursor/skills-cursor/
+# 还原某个工具
+rm -rf ~/.cursor/skills-cursor && cp -r staging/backups/20260323_210753/cursor ~/.cursor/skills-cursor
 ```
 
-#### 4. 后台自动同步守护进程
+#### 4. 从其他工具导入新 skill
 
 ```bash
-# 启动（每3秒检测 Claude skills 变化，自动 stage）
-bash tools/watch.sh start
+python3 tools/sync.py import
+```
 
-# 查看运行状态
-bash tools/watch.sh status
+扫描 Codex / Cursor / OpenClaw 中存在但 Claude 中没有的 skill，导入到 `~/.claude/skills/`（不覆盖已有）。
 
-# 停止
-bash tools/watch.sh stop
+#### 5. 后台自动 stage 守护进程
+
+```bash
+# 启动（每5秒检测 Claude skills 变化，自动 stage）
+python3 tools/sync.py watch
+
+# 自定义间隔（秒）
+python3 tools/sync.py watch --interval 10
 ```
 
 > watch 只做 stage（安全），不自动 deploy。确认 staging 无误后手动 `deploy` 一次即可。
 
 ### 典型工作流
 
-**在 Claude Code 里新建一个 skill 后，同步到 Cursor：**
+**在 Claude Code 里新建一个 skill 后，同步到所有工具：**
 
 ```bash
-# 1. 在 Claude Code 里新建 skill（正常使用即可）
+# 1. 用 /create-skill 在 Claude Code 里新建 skill
 # 2. 检查状态
 python3 tools/sync.py status
 
 # 3. 预览转换结果
 python3 tools/sync.py stage
 
-# 4. 确认无误后部署
+# 4. 确认无误后一键部署到全部工具
 python3 tools/sync.py deploy
 ```
 
-**或者开启后台守护 + 手动 deploy：**
+**开启后台守护 + 手动 deploy：**
 ```bash
-bash tools/watch.sh start   # 后台自动 stage
+python3 tools/sync.py watch &   # 后台自动 stage
 # ... 工作中新建 skill ...
-python3 tools/sync.py deploy  # 随时部署最新 staging
+python3 tools/sync.py deploy    # 随时部署最新 staging
 ```
 
 ---
 
 ## 模块详解
 
-### Claude Code Skills（128个）
+### Claude Code Skills（162个）
 
 所有 skill 位于 `claude/skills/`，部署后 symlink 到 `~/.claude/skills/`。
 
