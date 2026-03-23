@@ -591,6 +591,9 @@ def main():
 
     pp = sub.add_parser("pack", help="Bundle safe non-duplicate skills into a zip")
     pp.add_argument("--out", default=None, help="Output zip path (default: repo root)")
+    pp.add_argument("--format", dest="fmt", default="claude",
+        choices=["claude", "cursor", "mdc"],
+        help="Output format: claude (raw), cursor (simplified frontmatter), mdc (default: claude)")
 
     args = p.parse_args()
     if args.cmd == "status":        cmd_status()
