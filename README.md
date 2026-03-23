@@ -12,10 +12,10 @@
 ```bash
 git clone https://github.com/asimfish/skills_lyf ~/Desktop/agent/skills_lyf
 cd ~/Desktop/agent/skills_lyf
-# 直接把自己机器上各工具的 skill 互相同步，不导入本仓库的 skill
-python3 tools/sync.py import   # 把 Codex/Cursor/OpenClaw 的 skill 汇聚到 Claude
-python3 tools/sync.py stage    # 预览转换结果
-python3 tools/sync.py deploy --merge  # 增量同步回各工具（不覆盖已有）
+# 把各工具已有的 skill 先汇聚到 Claude，统一管理后再分发回各工具
+python3 tools/sync.py import          # 把 Codex/Cursor/OpenClaw 的 skill 导入 Claude
+python3 tools/sync.py stage           # 预览 Claude → 各工具的转换结果
+python3 tools/sync.py deploy --merge  # 增量分发到各工具（不覆盖已有）
 ```
 
 **方式二：安装本仓库的 162 个 skill + 全套配置**
