@@ -464,10 +464,11 @@ def cmd_audit(output_json: bool = False):
     if total_issues:
         print(f"  {total_issues} security flag(s) found — excluded from 'pack'")
 
-def cmd_pack(out_path):
-    """Bundle safe, non-duplicate Claude skills into a distributable zip."""
-    import zipfile
-    from collections import defaultdict
+def cmd_pack(out_path, fmt: str = "claude"):
+    """Bundle safe, non-duplicate skills into a distributable zip.
+    fmt: 'claude' (raw), 'cursor' (simplified frontmatter), 'mdc' (.mdc files)
+    """
+    import zipfile, tempfile
 
     if not CLAUDE_DIR.exists():
         print(f"Claude skills dir not found: {CLAUDE_DIR}")
@@ -496,16 +497,40 @@ def cmd_pack(out_path):
             safe.append((name, d))
 
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    zip_path = Path(out_path) if out_path else REPO / f"claude-skills-pack-{ts}.zip"
+    fmt_label = f"-{fmt}" if fmt != "claude" else ""
+    zip_path = Path(out_path) if out_path else REPO / f"skills-pack{fmt_label}-{ts}.zip"
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        for name, d in safe:
-            for f in d.rglob("*"):
-                if f.is_file():
-                    arcname = f"skills/{d.name}/{f.relative_to(d)}"
-                    zf.write(f, arcname)
+        if fmt == "cursor":
+            # Convert each safe skill to Cursor format in a temp dir, then zip
+            with tempfile.TemporaryDirectory() as tmp:
+                tmp_dir = Path(tmp)
+                for name, d in safe:
+                    claude_to_cursor(d, tmp_dir)
+                # tmp_dir now has skill-name subdirs
+                for skill_dir in tmp_dir.iterdir():
+                    if skill_dir.is_dir():
+                        for f in skill_dir.rglob("*"):
+                            if f.is_file():
+                                arcname = f"skills-cursor/{skill_dir.name}/{f.relative_to(skill_dir)}"
+                                zf.write(f, arcname)
+        elif fmt == "mdc":
+            with tempfile.TemporaryDirectory() as tmp:
+                tmp_dir = Path(tmp)
+                for name, d in safe:
+                    claude_to_mdc(d, tmp_dir)
+                for f in tmp_dir.iterdir():
+                    if f.suffix == ".mdc":
+                        zf.write(f, f"rules/skills/{f.name}")
+        else:  # claude raw
+            for name, d in safe:
+                for f in d.rglob("*"):
+                    if f.is_file():
+                        arcname = f"skills/{d.name}/{f.relative_to(d)}"
+                        zf.write(f, arcname)
 
     print(f"Pack complete: {zip_path}")
+    print(f"  Format   : {fmt}")
     print(f"  Included : {len(safe)} skills")
     print(f"  Excluded : {len(flagged)} skills (security flags)")
     if flagged:
