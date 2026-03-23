@@ -1,42 +1,44 @@
 #!/usr/bin/env python3
-"""Skill Universal Sync Tool
+"""skill sync tool — Claude Code is source of truth.
 
-Canonical format: Claude Code SKILL.md (most expressive)
-Targets: Cursor skill SKILL.md, Cursor MDC (.mdc)
+Commands:
+  status          show counts in all dirs
+  stage           convert Claude skills → repo staging dirs (SAFE, no live touch)
+  deploy          backup live dirs then copy staging → live (explicit opt-in)
+  watch           poll Claude dir, auto-stage every N seconds (no auto-deploy)
 
-Usage:
-  python3 sync.py convert   # one-shot batch convert all skills
-  python3 sync.py watch     # watch & auto-sync on change (polling)
-  python3 sync.py status    # show sync status
+Staging dirs (inside repo, git-ignored):
+  skills_lyf/staging/cursor-skills/
+  skills_lyf/staging/cursor-mdc/
 """
-
-import os, sys, re, time, shutil, hashlib, json, argparse
-from pathlib import Path
+import argparse, shutil, sys, time
 from datetime import datetime
+from pathlib import Path
 
-# ── Paths ──────────────────────────────────────────────────────────────────
-HOME = Path.home()
-CLAUDE_SKILLS   = HOME / ".claude/skills"
-CURSOR_SKILLS   = HOME / ".cursor/skills-cursor"
-CURSOR_RULES    = HOME / ".cursor/rules"          # .mdc files land here
-STATE_FILE      = HOME / ".claude/skills_lyf_sync_state.json"
+# ── Paths ────────────────────────────────────────────────────────────────────
+REPO   = Path(__file__).resolve().parent.parent
+STAGE  = REPO / "staging"
 
-# ── Frontmatter helpers ────────────────────────────────────────────────────
-def parse_frontmatter(text: str) -> tuple[dict, str]:
-    """Return (meta_dict, body) from a SKILL.md / .mdc file."""
+CLAUDE_DIR  = Path.home() / ".claude" / "skills"
+CURSOR_DIR  = Path.home() / ".cursor" / "skills-cursor"
+MDC_DIR     = Path.home() / ".cursor" / "rules" / "skills"
+
+STAGE_CURSOR = STAGE / "cursor-skills"
+STAGE_MDC    = STAGE / "cursor-mdc"
+
+# ── Frontmatter helpers ───────────────────────────────────────────────────────
+def parse_frontmatter(text: str):
     if not text.startswith("---"):
         return {}, text
-    end = text.find("\n---", 3)
-    if end == -1:
+    parts = text.split("---", 2)
+    if len(parts) < 3:
         return {}, text
-    fm_block = text[3:end].strip()
-    body = text[end+4:].lstrip("\n")
     meta = {}
-    for line in fm_block.splitlines():
+    for line in parts[1].splitlines():
         if ":" in line:
             k, _, v = line.partition(":")
             meta[k.strip()] = v.strip()
-    return meta, body
+    return meta, parts[2].lstrip("\n")
 
 def build_frontmatter(meta: dict) -> str:
     lines = ["---"]
@@ -45,203 +47,168 @@ def build_frontmatter(meta: dict) -> str:
     lines.append("---")
     return "\n".join(lines) + "\n"
 
-# ── Converters ─────────────────────────────────────────────────────────────
-
-def claude_to_cursor_skill(src: Path, dst_dir: Path):
-    """Claude Code SKILL.md → Cursor skill SKILL.md
-    Drops: allowed-tools, argument-hint, origin (Cursor-irrelevant)
-    Keeps: name, description, body
-    """
-    text = src.read_text(encoding="utf-8")
-    meta, body = parse_frontmatter(text)
-    if not meta.get("name"):
-        return  # skip malformed
-
-    out_meta = {}
-    if meta.get("name"):        out_meta["name"] = meta["name"]
-    if meta.get("description"): out_meta["description"] = meta["description"]
-
-    skill_dir = dst_dir / meta["name"]
-    skill_dir.mkdir(parents=True, exist_ok=True)
-    out_path = skill_dir / "SKILL.md"
-    out_path.write_text(build_frontmatter(out_meta) + "\n" + body, encoding="utf-8")
-    return out_path
-
-def claude_to_cursor_mdc(src: Path, dst_dir: Path, always_apply: bool = False):
-    """Claude Code SKILL.md → Cursor .mdc rule
-    globs: '' (manual apply by default)
-    alwaysApply: false (override with always_apply=True for rules)
-    """
-    text = src.read_text(encoding="utf-8")
-    meta, body = parse_frontmatter(text)
-    if not meta.get("name"):
-        return
-
-    desc = meta.get("description", "")
-    # Cursor MDC frontmatter
-    out_meta = {
-        "description": desc,
-        "globs": "",
-        "alwaysApply": "true" if always_apply else "false",
-    }
-
-    dst_dir.mkdir(parents=True, exist_ok=True)
-    out_path = dst_dir / f"{meta['name']}.mdc"
-    out_path.write_text(build_frontmatter(out_meta) + "\n" + body, encoding="utf-8")
-    return out_path
-
-def cursor_skill_to_claude(src_dir: Path, dst_dir: Path):
-    """Cursor skill SKILL.md → Claude Code SKILL.md
-    Only imports skills that do NOT already exist in Claude (Claude is source of truth).
-    """
-    skill_md = src_dir / "SKILL.md"
+# ── Converters ────────────────────────────────────────────────────────────────
+def claude_to_cursor_skill(src: Path, dst_root: Path) -> bool:
+    """Claude SKILL.md → Cursor SKILL.md (staging only)"""
+    skill_md = src / "SKILL.md"
     if not skill_md.exists():
-        return
+        return False
     text = skill_md.read_text(encoding="utf-8")
     meta, body = parse_frontmatter(text)
-    if not meta.get("name"):
-        meta["name"] = src_dir.name
-
-    out_dir = dst_dir / meta["name"]
-    out_path = out_dir / "SKILL.md"
-    # Claude is source of truth — skip if already exists there
-    if out_path.exists():
-        return
-
-    out_meta = {"name": meta["name"], "origin": "cursor-migration"}
-    if meta.get("description"): out_meta["description"] = meta["description"]
-
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(build_frontmatter(out_meta) + "\n" + body, encoding="utf-8")
-    return out_path
-
-def cursor_mdc_to_claude(mdc_path: Path, dst_dir: Path):
-    """Cursor .mdc → Claude Code SKILL.md (only imports new ones)"""
-    text = mdc_path.read_text(encoding="utf-8")
-    meta, body = parse_frontmatter(text)
-    name = mdc_path.stem
+    name = meta.get("name", src.name)
     desc = meta.get("description", "")
 
-    out_dir = dst_dir / name
-    out_path = out_dir / "SKILL.md"
-    # Skip if already in Claude
-    if out_path.exists():
-        return
+    out_meta = {"name": name}
+    if desc:
+        out_meta["description"] = desc
 
-    out_meta = {"name": name, "origin": "cursor-mdc"}
-    if desc: out_meta["description"] = desc
-
+    new_text = build_frontmatter(out_meta) + "\n" + body
+    out_dir = dst_root / name
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(build_frontmatter(out_meta) + "\n" + body, encoding="utf-8")
-    return out_path
+    out_path = out_dir / "SKILL.md"
+    if out_path.exists() and out_path.read_text(encoding="utf-8") == new_text:
+        return False
+    out_path.write_text(new_text, encoding="utf-8")
+    return True
 
-# ── Batch convert ──────────────────────────────────────────────────────────
+def claude_to_mdc(src: Path, dst_root: Path) -> bool:
+    """Claude SKILL.md → Cursor .mdc (staging only)"""
+    skill_md = src / "SKILL.md"
+    if not skill_md.exists():
+        return False
+    text = skill_md.read_text(encoding="utf-8")
+    meta, body = parse_frontmatter(text)
+    name = meta.get("name", src.name)
+    desc = meta.get("description", "")
 
-def convert_all(verbose=True):
-    results = {"claude→cursor_skill": 0, "claude→mdc": 0,
-               "cursor_skill→claude": 0, "mdc→claude": 0}
+    out_meta = {"description": desc, "globs": "", "alwaysApply": "false"}
+    new_text = build_frontmatter(out_meta) + "\n" + body
+    dst_root.mkdir(parents=True, exist_ok=True)
+    out_path = dst_root / f"{name}.mdc"
+    if out_path.exists() and out_path.read_text(encoding="utf-8") == new_text:
+        return False
+    out_path.write_text(new_text, encoding="utf-8")
+    return True
 
-    # 1. Claude skills → Cursor skills
-    if CLAUDE_SKILLS.exists():
-        for skill_dir in sorted(CLAUDE_SKILLS.iterdir()):
-            skill_md = skill_dir / "SKILL.md"
-            if skill_md.exists():
-                if claude_to_cursor_skill(skill_md, CURSOR_SKILLS):
-                    results["claude→cursor_skill"] += 1
+# ── Commands ─────────────────────────────────────────────────────────────────
+def cmd_status(_args):
+    def count(p): return len(list(p.glob("*/SKILL.md"))) if p.exists() else 0
+    def countf(p, pat): return len(list(p.glob(pat))) if p.exists() else 0
+    print(f"Claude skills (live) : {count(CLAUDE_DIR)}")
+    print(f"Cursor skills (live) : {count(CURSOR_DIR)}")
+    print(f"MDC rules (live)     : {countf(MDC_DIR, '*.mdc')}")
+    print(f"Staging cursor       : {count(STAGE_CURSOR)}")
+    print(f"Staging MDC          : {countf(STAGE_MDC, '*.mdc')}")
 
-    # 2. Claude skills → Cursor MDC (rules dir)
-    if CLAUDE_SKILLS.exists() and CURSOR_RULES.exists():
-        for skill_dir in sorted(CLAUDE_SKILLS.iterdir()):
-            skill_md = skill_dir / "SKILL.md"
-            if skill_md.exists():
-                if claude_to_cursor_mdc(skill_md, CURSOR_RULES / "skills"):
-                    results["claude→mdc"] += 1
+def cmd_stage(_args):
+    """Convert Claude → staging dirs. Never touches live Cursor/MDC dirs."""
+    STAGE_CURSOR.mkdir(parents=True, exist_ok=True)
+    STAGE_MDC.mkdir(parents=True, exist_ok=True)
 
-    # 3. Cursor skills → Claude (import missing ones)
-    if CURSOR_SKILLS.exists():
-        for skill_dir in sorted(CURSOR_SKILLS.iterdir()):
-            if skill_dir.is_dir():
-                r = cursor_skill_to_claude(skill_dir, CLAUDE_SKILLS)
-                if r: results["cursor_skill→claude"] += 1
+    n_cursor = n_mdc = 0
+    for skill_dir in sorted(CLAUDE_DIR.iterdir()):
+        if not skill_dir.is_dir():
+            continue
+        if claude_to_cursor_skill(skill_dir, STAGE_CURSOR):
+            n_cursor += 1
+        if claude_to_mdc(skill_dir, STAGE_MDC):
+            n_mdc += 1
 
-    # 4. Cursor MDC → Claude (import missing)
-    if CURSOR_RULES.exists():
-        for mdc in sorted(CURSOR_RULES.rglob("*.mdc")):
-            r = cursor_mdc_to_claude(mdc, CLAUDE_SKILLS)
-            if r: results["mdc→claude"] += 1
+    ts = datetime.now().strftime("%H:%M:%S")
+    print(f"[{ts}] Stage complete: {n_cursor} cursor-skills, {n_mdc} MDC files updated")
+    print(f"  staging/cursor-skills/ → {STAGE_CURSOR}")
+    print(f"  staging/cursor-mdc/    → {STAGE_MDC}")
+    print("  (nothing written to ~/.cursor — run 'deploy' to push live)")
 
-    if verbose:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Sync complete:")
-        for k, v in results.items():
-            print(f"  {k}: {v} files")
-    return results
+def _backup(src: Path, label: str):
+    if not src.exists():
+        return
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    bak = STAGE / "backups" / f"{label}_{ts}"
+    shutil.copytree(src, bak)
+    print(f"  Backed up {src} → {bak}")
 
-# ── File hash state ─────────────────────────────────────────────────────────
+def cmd_deploy(args):
+    """Backup live dirs then copy staging → live."""
+    if not STAGE_CURSOR.exists() or not any(STAGE_CURSOR.iterdir()):
+        print("Staging is empty. Run 'stage' first.")
+        sys.exit(1)
 
-def snapshot_skills() -> dict:
-    """Return {path: mtime} for all SKILL.md and .mdc files."""
-    state = {}
-    for base in [CLAUDE_SKILLS, CURSOR_SKILLS]:
-        if base.exists():
-            for f in base.rglob("SKILL.md"):
-                state[str(f)] = f.stat().st_mtime
-    if CURSOR_RULES.exists():
-        for f in CURSOR_RULES.rglob("*.mdc"):
-            state[str(f)] = f.stat().st_mtime
-    return state
+    print("Backing up live Cursor dirs...")
+    _backup(CURSOR_DIR, "cursor-skills")
+    _backup(MDC_DIR,    "cursor-mdc")
 
-# ── Watch mode (polling, zero deps) ─────────────────────────────────────────
+    # Copy staging → live (preserve existing non-staged files)
+    n_cursor = n_mdc = 0
+    for src in sorted(STAGE_CURSOR.iterdir()):
+        if not src.is_dir():
+            continue
+        dst = CURSOR_DIR / src.name
+        if not dst.exists():
+            shutil.copytree(src, dst)
+            n_cursor += 1
+        else:
+            # Only update SKILL.md if changed
+            sp = src / "SKILL.md"
+            dp = dst / "SKILL.md"
+            if sp.exists() and (not dp.exists() or sp.read_text() != dp.read_text()):
+                shutil.copy2(sp, dp)
+                n_cursor += 1
 
-def watch(interval=3):
-    print(f"Watching for skill changes (poll every {interval}s). Ctrl-C to stop.")
-    prev = snapshot_skills()
+    CURSOR_DIR.mkdir(parents=True, exist_ok=True)
+    MDC_DIR.mkdir(parents=True, exist_ok=True)
+    for src in sorted(STAGE_MDC.glob("*.mdc")):
+        dst = MDC_DIR / src.name
+        if not dst.exists() or src.read_text() != dst.read_text():
+            shutil.copy2(src, dst)
+            n_mdc += 1
+
+    ts = datetime.now().strftime("%H:%M:%S")
+    print(f"[{ts}] Deploy complete: {n_cursor} cursor-skills, {n_mdc} MDC files")
+
+def cmd_watch(args):
+    interval = int(args.interval)
+    print(f"Watching {CLAUDE_DIR} every {interval}s (Ctrl-C to stop)...")
+    print("Auto-staging only. Run 'deploy' manually to push to live.")
+    seen = {}
     while True:
+        changed = []
+        if CLAUDE_DIR.exists():
+            for skill_dir in CLAUDE_DIR.iterdir():
+                sm = skill_dir / "SKILL.md"
+                if sm.exists():
+                    mtime = sm.stat().st_mtime
+                    if seen.get(str(sm)) != mtime:
+                        seen[str(sm)] = mtime
+                        changed.append(skill_dir)
+        if changed:
+            STAGE_CURSOR.mkdir(parents=True, exist_ok=True)
+            STAGE_MDC.mkdir(parents=True, exist_ok=True)
+            n_c = n_m = 0
+            for skill_dir in changed:
+                if claude_to_cursor_skill(skill_dir, STAGE_CURSOR): n_c += 1
+                if claude_to_mdc(skill_dir, STAGE_MDC): n_m += 1
+            ts = datetime.now().strftime("%H:%M:%S")
+            print(f"[{ts}] {len(changed)} changed → staged {n_c} cursor, {n_m} MDC")
         time.sleep(interval)
-        curr = snapshot_skills()
-        changed = {k for k in curr if curr[k] != prev.get(k)}
-        new_files = set(curr) - set(prev)
-        if changed or new_files:
-            print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Detected {len(changed|new_files)} change(s):")
-            for f in sorted(changed | new_files):
-                print(f"  ~ {f}")
-            convert_all(verbose=True)
-        prev = curr
 
-# ── Status ──────────────────────────────────────────────────────────────────
-
-def show_status():
-    claude_count = sum(1 for _ in CLAUDE_SKILLS.rglob("SKILL.md")) if CLAUDE_SKILLS.exists() else 0
-    cursor_count = sum(1 for d in CURSOR_SKILLS.iterdir() if d.is_dir() and (d/"SKILL.md").exists()) if CURSOR_SKILLS.exists() else 0
-    mdc_count = sum(1 for _ in CURSOR_RULES.rglob("*.mdc")) if CURSOR_RULES.exists() else 0
-    print(f"Claude Code skills : {claude_count}")
-    print(f"Cursor skills      : {cursor_count}")
-    print(f"Cursor MDC rules   : {mdc_count}")
-    print(f"Paths:")
-    print(f"  Claude : {CLAUDE_SKILLS}")
-    print(f"  Cursor : {CURSOR_SKILLS}")
-    print(f"  MDC    : {CURSOR_RULES}")
-
-# ── Main ────────────────────────────────────────────────────────────────────
-
+# ── CLI ───────────────────────────────────────────────────────────────────────
 def main():
-    parser = argparse.ArgumentParser(description="Skill Universal Sync Tool")
-    sub = parser.add_subparsers(dest="cmd")
-    sub.add_parser("convert", help="One-shot batch convert all skills")
-    wp = sub.add_parser("watch", help="Watch and auto-sync on change")
-    wp.add_argument("--interval", type=int, default=3, help="Poll interval seconds (default 3)")
-    sub.add_parser("status", help="Show skill counts per tool")
-    args = parser.parse_args()
+    p = argparse.ArgumentParser(description="Skill sync tool")
+    sub = p.add_subparsers(dest="cmd")
 
-    if args.cmd == "convert":
-        convert_all()
-    elif args.cmd == "watch":
-        interval = getattr(args, "interval", 3)
-        convert_all(verbose=False)  # initial sync
-        watch(interval)
-    elif args.cmd == "status":
-        show_status()
-    else:
-        parser.print_help()
+    sub.add_parser("status")
+    sub.add_parser("stage")
+    deploy_p = sub.add_parser("deploy")
+    watch_p  = sub.add_parser("watch")
+    watch_p.add_argument("--interval", default=3)
+
+    args = p.parse_args()
+    if   args.cmd == "status": cmd_status(args)
+    elif args.cmd == "stage":  cmd_stage(args)
+    elif args.cmd == "deploy": cmd_deploy(args)
+    elif args.cmd == "watch":  cmd_watch(args)
+    else: p.print_help()
 
 if __name__ == "__main__":
     main()

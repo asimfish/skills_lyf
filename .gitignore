@@ -49,3 +49,4 @@ workflow/logs/
 *.swo
 __pycache__/
 *.pyc
+staging/
