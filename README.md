@@ -1,6 +1,6 @@
 # skills_lyf
 
-> AI 工具 skill 双向互通套件 — 让 Claude Code、Codex、Cursor、OpenClaw 共享同一份 skill 库，附带 162 个开箱即用的 skill 配置
+> AI 工具 skill 统一管理套件 — 把 Codex、Cursor、OpenClaw 的 skill 汇聚到 Claude 统一管理，再按需分发到各工具，附带 162 个开箱即用的 skill 配置
 
 [![GitHub stars](https://img.shields.io/github/stars/asimfish/skills_lyf?style=flat-square)](https://github.com/asimfish/skills_lyf)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
