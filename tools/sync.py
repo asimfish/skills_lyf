@@ -279,8 +279,10 @@ def cmd_stage():
     print(f"  staging dirs    : {STAGE}")
     print(f"  (run 'deploy' to push to live)")
 
-def cmd_deploy(targets: list):
-    """Backup live dirs then copy staging → live."""
+def cmd_deploy(targets: list, merge: bool = False):
+    """Backup live dirs then copy staging → live.
+    merge=True: only add skills not already present (never overwrite).
+    """
     all_targets = ["codex", "cursor", "mdc", "openclaw"]
     if not targets:
         targets = all_targets
@@ -306,7 +308,8 @@ def cmd_deploy(targets: list):
             shutil.copytree(live_dst, bk)
             print(f"  Backed up {live_dst} → {bk}")
 
-    print("Deploying...")
+    mode_label = "merge (add-only)" if merge else "overwrite"
+    print(f"Deploying [{mode_label}]...")
     counts = {}
     for t in targets:
         stage_src, live_dst = deploy_map[t]
@@ -319,6 +322,8 @@ def cmd_deploy(targets: list):
             for f in stage_src.iterdir():
                 if f.suffix == ".mdc":
                     dst = live_dst / f.name
+                    if merge and dst.exists():
+                        continue
                     content = f.read_text(encoding="utf-8")
                     if write_if_changed(dst, content):
                         n += 1
@@ -329,6 +334,8 @@ def cmd_deploy(targets: list):
             for d in stage_src.iterdir():
                 if d.is_dir():
                     dst = live_dst / d.name
+                    if merge and (dst.exists() or dst.is_symlink()):
+                        continue
                     if dst.is_symlink():
                         dst.unlink()
                     elif dst.exists():
@@ -342,6 +349,169 @@ def cmd_deploy(targets: list):
     for t, n in counts.items():
         print(f"  {t:10s}: {n} skills/files")
     print(f"  backup at: {backup_base}")
+
+# ── Security patterns ────────────────────────────────────────────────────────
+_SECURITY_PATTERNS = [
+    (r'(?i)(api[_-]?key|secret|password|token|credential)\s*[:=]\s*[\'"`][^\'"`]{6,}', "hardcoded secret"),
+    (r'(?i)\b(eval|exec)\s*\(', "dynamic code execution"),
+    (r'(?i)subprocess\.call.*shell\s*=\s*True', "shell=True subprocess"),
+    (r'(?i)' + 'os\.system' + r'\s*\(', "os.system call"),
+    (r'(?i)rm\s+-rf\s+/', "destructive rm -rf /"),
+    (r'(?i)curl\s+.*\|\s*(ba)?sh', "curl-pipe-shell"),
+    (r'(?i)wget\s+.*-O\s*-.*\|\s*(ba)?sh', "wget-pipe-shell"),
+    (r'(?i)DROP\s+TABLE|DELETE\s+FROM\s+\w+\s*;', "destructive SQL"),
+]
+
+def _check_security(skill_dir: Path) -> list:
+    """Return list of security issue descriptions found in skill files."""
+    issues = []
+    for f in skill_dir.rglob("*"):
+        if not f.is_file():
+            continue
+        if f.suffix not in (".md", ".py", ".sh", ".txt", ".json", ".toml"):
+            continue
+        try:
+            text = f.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        for pattern, label in _SECURITY_PATTERNS:
+            if re.search(pattern, text):
+                issues.append(f"{f.name}: {label}")
+    return issues
+
+# ── Tool suitability heuristics ───────────────────────────────────────────────
+_CATEGORIES = {
+    "ML/AI":        ["torch", "pytorch", "tensorflow", "jax", "vllm", "llm", "transformer", "diffusion", "rlhf", "fine-tun", "training", "inference", "cuda", "gpu"],
+    "Research":     ["arxiv", "paper", "literature", "review", "survey", "research", "experiment", "ablation"],
+    "Backend":      ["django", "fastapi", "flask", "api", "rest", "graphql", "database", "postgres", "sql", "redis"],
+    "Frontend":     ["react", "vue", "svelte", "css", "html", "typescript", "javascript", "webpack", "vite"],
+    "DevOps":       ["docker", "kubernetes", "ci/cd", "github actions", "deploy", "terraform", "ansible"],
+    "Security":     ["auth", "oauth", "jwt", "security", "pentest", "vulnerability", "encryption", "ssl"],
+    "Data Science": ["pandas", "numpy", "sklearn", "scipy", "matplotlib", "seaborn", "notebook", "jupyter"],
+    "Writing":      ["article", "blog", "content", "writing", "academic", "paper", "manuscript"],
+    "Productivity": ["task", "workflow", "schedule", "reminder", "meeting", "email", "slack"],
+}
+
+def _categorize(meta: dict, body: str) -> str:
+    haystack = (" ".join(str(v) for v in meta.values()) + " " + body[:500]).lower()
+    for cat, keywords in _CATEGORIES.items():
+        if any(kw in haystack for kw in keywords):
+            return cat
+    return "General"
+
+def _tool_suitability(meta: dict, body: str) -> dict:
+    allowed_tools = meta.get("allowed-tools", "")
+    has_bash  = "Bash" in allowed_tools or "bash" in body.lower()
+    has_mcp   = "mcp__" in allowed_tools or "mcp__" in body
+    desc_len  = len(meta.get("description", ""))
+    body_len  = len(body)
+    ratings = {}
+    ratings["codex"]    = "Good" if has_bash or has_mcp else ("OK" if body_len > 200 else "Poor")
+    ratings["cursor"]   = "Poor" if has_mcp else ("Good" if not has_bash and body_len > 100 else "OK")
+    ratings["mdc"]      = "Good" if desc_len > 20 and body_len < 3000 else ("OK" if body_len < 6000 else "Poor")
+    ratings["openclaw"] = "Good" if "## Instructions" in body or "## " in body else "OK"
+    return ratings
+
+def cmd_audit(output_json: bool = False):
+    """Summarise, categorise, rate suitability, and flag security issues for all Claude skills."""
+    if not CLAUDE_DIR.exists():
+        print(f"Claude skills dir not found: {CLAUDE_DIR}")
+        return
+
+    from collections import defaultdict
+    results = []
+    for d in sorted(CLAUDE_DIR.iterdir()):
+        if not d.is_dir():
+            continue
+        sk = d / "SKILL.md"
+        if not sk.exists():
+            continue
+        text = sk.read_text(encoding="utf-8", errors="ignore")
+        meta, body = parse_frontmatter(text)
+        name     = meta.get("name") or d.name
+        desc     = meta.get("description", "")[:80]
+        category = _categorize(meta, body)
+        ratings  = _tool_suitability(meta, body)
+        issues   = _check_security(d)
+        results.append({"dir": d.name, "name": name, "desc": desc,
+                        "category": category, "ratings": ratings, "issues": issues})
+
+    if output_json:
+        print(json.dumps(results, ensure_ascii=False, indent=2))
+        return
+
+    by_cat = defaultdict(list)
+    for r in results:
+        by_cat[r["category"]].append(r)
+
+    total_issues = sum(len(r["issues"]) for r in results)
+    print(f"\n{'='*70}")
+    print(f"  SKILL AUDIT — {len(results)} skills, {total_issues} security flags")
+    print(f"{'='*70}")
+    for cat in sorted(by_cat):
+        skills = by_cat[cat]
+        print(f"\n[{cat}] ({len(skills)} skills)")
+        print(f"  {'Name':<35} {'Codex':>5} {'Cursor':>6} {'MDC':>4} {'OpenClaw':>8}  Issues")
+        print(f"  {'-'*35} {'-'*5} {'-'*6} {'-'*4} {'-'*8}  ------")
+        for r in skills:
+            rt  = r["ratings"]
+            iss = ", ".join(r["issues"]) if r["issues"] else ""
+            flag = "  *" if iss else ""
+            print(f"  {r['name']:<35} {rt['codex']:>5} {rt['cursor']:>6} {rt['mdc']:>4} {rt['openclaw']:>8}{flag}")
+            if iss:
+                print(f"    {'':35}  -> {iss}")
+    print(f"\nRating key: Good = recommended  OK = usable  Poor = not ideal")
+    if total_issues:
+        print(f"  {total_issues} security flag(s) found — excluded from 'pack'")
+
+def cmd_pack(out_path):
+    """Bundle safe, non-duplicate Claude skills into a distributable zip."""
+    import zipfile
+    from collections import defaultdict
+
+    if not CLAUDE_DIR.exists():
+        print(f"Claude skills dir not found: {CLAUDE_DIR}")
+        return
+
+    # Deduplicate by frontmatter name (keep first by dir sort order)
+    name_to_dir = {}
+    for d in sorted(CLAUDE_DIR.iterdir()):
+        if not d.is_dir():
+            continue
+        sk = d / "SKILL.md"
+        if not sk.exists():
+            continue
+        text = sk.read_text(encoding="utf-8", errors="ignore")
+        meta, _ = parse_frontmatter(text)
+        canonical = meta.get("name") or d.name
+        if canonical not in name_to_dir:
+            name_to_dir[canonical] = d
+
+    safe, flagged = [], []
+    for name, d in sorted(name_to_dir.items()):
+        issues = _check_security(d)
+        if issues:
+            flagged.append((name, issues))
+        else:
+            safe.append((name, d))
+
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    zip_path = Path(out_path) if out_path else REPO / f"claude-skills-pack-{ts}.zip"
+
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name, d in safe:
+            for f in d.rglob("*"):
+                if f.is_file():
+                    arcname = f"skills/{d.name}/{f.relative_to(d)}"
+                    zf.write(f, arcname)
+
+    print(f"Pack complete: {zip_path}")
+    print(f"  Included : {len(safe)} skills")
+    print(f"  Excluded : {len(flagged)} skills (security flags)")
+    if flagged:
+        print("  Flagged skills:")
+        for name, issues in flagged:
+            print(f"    {name}: {', '.join(issues)}")
 
 def cmd_watch(interval: int):
     """Poll Claude dir; auto-stage when changes detected."""
@@ -385,16 +555,26 @@ def main():
     dp.add_argument("targets", nargs="*",
         metavar="{codex,cursor,mdc,openclaw}",
         help="Which tools to deploy (default: all)")
+    dp.add_argument("--merge", action="store_true",
+        help="Add-only: skip skills already present in live (never overwrite)")
 
     wp = sub.add_parser("watch", help="Auto-stage on Claude skill changes")
     wp.add_argument("--interval", type=int, default=5, help="Poll interval seconds (default: 5)")
+
+    ap = sub.add_parser("audit", help="Categorise skills, rate tool suitability, flag security issues")
+    ap.add_argument("--json", action="store_true", dest="output_json", help="Output as JSON")
+
+    pp = sub.add_parser("pack", help="Bundle safe non-duplicate skills into a zip")
+    pp.add_argument("--out", default=None, help="Output zip path (default: repo root)")
 
     args = p.parse_args()
     if args.cmd == "status":        cmd_status()
     elif args.cmd == "import":      cmd_import()
     elif args.cmd == "stage":       cmd_stage()
-    elif args.cmd == "deploy":      cmd_deploy(getattr(args, "targets", []))
+    elif args.cmd == "deploy":      cmd_deploy(getattr(args, "targets", []), merge=getattr(args, "merge", False))
     elif args.cmd == "watch":       cmd_watch(args.interval)
+    elif args.cmd == "audit":       cmd_audit(output_json=getattr(args, "output_json", False))
+    elif args.cmd == "pack":        cmd_pack(getattr(args, "out", None))
     else:
         p.print_help()
 
