@@ -1,11 +1,37 @@
 # skills_lyf
 
-> 个人 Claude Code / Codex / Cursor 配置一键部署套件，附带跨工具 skill 自动同步系统
+> AI 工具 skill 双向互通套件 — 让 Claude Code、Codex、Cursor、OpenClaw 共享同一份 skill 库，附带 162 个开箱即用的 skill 配置
 
 [![GitHub stars](https://img.shields.io/github/stars/asimfish/skills_lyf?style=flat-square)](https://github.com/asimfish/skills_lyf)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-本仓库汇总了在 macOS 上使用 Claude Code、Codex CLI、Cursor 进行 AI 辅助开发的全套配置：
+## 两种使用方式
+
+**方式一：只用 sync.py 统一管理自己机器上已有的 skill**（不安装本仓库任何 skill）
+
+```bash
+git clone https://github.com/asimfish/skills_lyf ~/Desktop/agent/skills_lyf
+cd ~/Desktop/agent/skills_lyf
+# 直接把自己机器上各工具的 skill 互相同步，不导入本仓库的 skill
+python3 tools/sync.py import   # 把 Codex/Cursor/OpenClaw 的 skill 汇聚到 Claude
+python3 tools/sync.py stage    # 预览转换结果
+python3 tools/sync.py deploy --merge  # 增量同步回各工具（不覆盖已有）
+```
+
+**方式二：安装本仓库的 162 个 skill + 全套配置**
+
+```bash
+git clone https://github.com/asimfish/skills_lyf ~/Desktop/agent/skills_lyf
+cd ~/Desktop/agent/skills_lyf
+bash install.sh   # 只新增，不覆盖已有配置
+```
+
+> 无论哪种方式，`deploy` 操作请**务必加 `--merge`**，否则会覆盖目标目录已有的 skill。
+> 详见[安全警告](#deploy-安全警告覆盖风险)。
+
+---
+
+本仓库包含：
 
 - **162 个 Claude Code skills**（含 [ARIS](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep) 研究自动化全集）
 - **21 个 subagents**（code-reviewer、architect、ml-debugger 等）
@@ -15,13 +41,15 @@
 - **scholar local plugin**（arxiv / crossref 学术搜索）
 - **ccline 状态栏主题**
 - **workflow** — tmux + Claude + Codex + GitHub + Obsidian + 飞书多项目开发工作流
-- **tools/sync.py** — 跨工具 skill 统一同步系统
+- **tools/sync.py** — 多工具 skill 双向互通系统
 
 ---
 
 ## 目录
 
-- [快速开始](#快速开始)
+- [deploy 安全警告](#deploy-安全警告覆盖风险)
+- [独立使用：只同步自己的 skill](#独立使用只同步自己的-skill)
+- [快速开始（安装完整套件）](#快速开始安装完整套件)
 - [目录结构](#目录结构)
 - [跨工具 Skill 同步](#跨工具-skill-同步)
 - [模块详解](#模块详解)
@@ -31,7 +59,84 @@
 
 ---
 
-## 快速开始
+## deploy 安全警告：覆盖风险
+
+> **警告**：不带 `--merge` 的 `deploy` 会**完全替换**目标目录，导致已有 skill 丢失。
+
+| 命令 | 行为 |
+|------|------|
+| `python3 tools/sync.py deploy` | **覆盖**目标目录（先自动备份到 `staging/backups/`）|
+| `python3 tools/sync.py deploy --merge` | **增量新增**，跳过已有 skill，**推荐** |
+
+**强烈建议始终使用 `--merge`**，除非你明确要用本仓库的 skill 替换掉目标目录的全部内容。
+
+即使使用不带 `--merge` 的 deploy，操作前也会自动备份到 `staging/backups/YYYYMMDD_HHMMSS/`，可随时回滚：
+
+```bash
+# 查看备份
+ls staging/backups/
+# 回滚 Cursor skills
+rm -rf ~/.cursor/skills-cursor && cp -r staging/backups/20260323_210753/cursor ~/.cursor/skills-cursor
+```
+
+---
+
+## 独立使用：只同步自己的 skill
+
+**不想安装本仓库的 skill，只想让自己机器上各工具的 skill 互相同步？**
+
+clone 仓库后，只需使用 `sync.py`，完全不运行 `install.sh`：
+
+```bash
+git clone https://github.com/asimfish/skills_lyf ~/Desktop/agent/skills_lyf
+cd ~/Desktop/agent/skills_lyf
+```
+
+### 第一步：把各工具已有的 skill 汇聚到 Claude
+
+```bash
+# 扫描 Codex / Cursor / OpenClaw 中有但 Claude 没有的 skill，导入到 ~/.claude/skills/
+python3 tools/sync.py import
+```
+
+`import` 只新增，不覆盖 Claude 中已有的 skill。
+
+### 第二步：查看汇聚结果
+
+```bash
+python3 tools/sync.py status
+```
+
+### 第三步：预览转换（不改任何 live 目录）
+
+```bash
+python3 tools/sync.py stage
+# 检查预览
+ls staging/codex-skills/
+ls staging/cursor-skills/
+```
+
+### 第四步：增量同步回各工具
+
+```bash
+# --merge 模式：只新增，跳过各工具中已有的 skill
+python3 tools/sync.py deploy --merge
+```
+
+这样就实现了：你在任意工具里写的新 skill → 通过 `import` 汇聚 → 通过 `deploy --merge` 分发到其他工具，各工具原有 skill 不受影响。
+
+### 持续自动同步
+
+```bash
+# 后台守护进程，有变化自动 stage（不自动 deploy）
+python3 tools/sync.py watch &
+# 确认 staging 无误后手动 deploy
+python3 tools/sync.py deploy --merge
+```
+
+---
+
+## 快速开始（安装完整套件）
 
 ### 第一步：克隆仓库
 
@@ -46,39 +151,15 @@ cd ~/Desktop/agent/skills_lyf
 bash install.sh
 ```
 
-install.sh 会自动完成：
-- 创建 `~/.claude/` 下的 agents、skills、rules、mcp-servers、plugins 目录并 symlink
-- 创建 `~/.cursor/skills-cursor/` 目录并 symlink Cursor skills
-- 复制 `settings.json.example` → `~/.claude/settings.json`（如果不存在）
-
-> 幂等设计：重复执行不会覆盖已有配置
+install.sh 只新增文件，**不覆盖已有配置**：
+- 将 agents、skills、rules、mcp-servers、plugins 复制到 `~/.claude/`（跳过已有）
+- 将 Cursor skills 复制到 `~/.cursor/skills-cursor/`（跳过已有）
+- 复制 `settings.json.example` → `~/.claude/settings.json`（仅当不存在时）
 
 ### 第三步：填入密钥
 
 ```bash
-# 编辑 Claude Code 配置，填入你的 API Token
-vim ~/.claude/settings.json
-```
-
-找到这一行并替换：
-```json
-"ANTHROPIC_AUTH_TOKEN": "YOUR_ANTHROPIC_AUTH_TOKEN"
-```
-
-如果使用自定义 API 代理（如 aipor.cc），同时修改：
-```json
-"ANTHROPIC_BASE_URL": "https://your-proxy.com"
-```
-
-### 第四步（可选）：启动跨工具 skill 同步
-
-```bash
-# 一键同步 Claude skills → Codex / Cursor / MDC / OpenClaw（自动备份原配置）
-python3 tools/sync.py stage && python3 tools/sync.py deploy
-
-# 或启动后台守护进程，有新 skill 时自动 stage
-python3 tools/sync.py watch
-```
+#
 
 ---
 
