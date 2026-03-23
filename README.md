@@ -193,7 +193,59 @@ ls staging/cursor-mdc/       # 预览 MDC rules
 ls staging/openclaw-skills/  # 预览 OpenClaw skills
 ```
 
-#### 3. 部署到 live（自动备份）
+#### 3. 审计评分（安全检查 + 工具适用性）
+
+```bash
+python3 tools/sync.py audit
+```
+
+输出示例：
+```
+[ML] (29 skills)
+  Name                                Codex Cursor  MDC OpenClaw  Issues
+  accelerate                           Good     OK Poor     Good
+  deepspeed                            Good     OK Poor     Good
+  vllm                                 Good     OK Poor     Good
+  grpo-rl-training                     Good     OK Poor     Good  *
+                                         -> reward_functions_library.py: dynamic code execution
+```
+
+评分含义：`Good` = 推荐  `OK` = 可用  `Poor` = 不适合该工具
+
+安全检查项：hardcoded secret、curl-pipe-shell、动态代码执行、`rm -rf` 危险命令
+
+```bash
+# 输出 JSON 供脚本处理
+python3 tools/sync.py audit --json > audit.json
+```
+
+#### 4. 打包分发（安全 skill 一键打包）
+
+```bash
+# 打包为 Claude 原始格式（默认）
+python3 tools/sync.py pack
+
+# 打包为 Cursor 格式（推荐分发给 Cursor 用户）
+python3 tools/sync.py pack --format cursor
+
+# 打包为 MDC rule 格式
+python3 tools/sync.py pack --format mdc
+
+# 指定输出路径
+python3 tools/sync.py pack --format cursor --out ~/Desktop/cursor-skills.zip
+```
+
+`pack` 会自动：
+1. 扫描全部 skill，排除有安全隐患的
+2. 按 `--format` 转换为目标格式
+3. 输出可分发 zip，附排除清单
+
+安装别人分享的 Cursor skills 包：
+```bash
+unzip cursor-skills.zip -d ~/.cursor/
+```
+
+#### 5. 部署到 live（自动备份）
 
 ```bash
 # 部署全部工具
