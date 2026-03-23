@@ -251,25 +251,35 @@ skills_lyf/
 ### 工作原理
 
 ```
-Codex / Cursor / OpenClaw ──→ import ──→ ~/.claude/skills/   ← 汇聚中心
-                                                 │
-                                    stage（预览，不改 live 目录）
-                                                 │
-                               ├──→ staging/codex-skills/
-                               ├──→ staging/cursor-skills/
-                               ├──→ staging/cursor-mdc/
-                               └──→ staging/openclaw-skills/
-                                                 │
-                                  deploy --merge（增量，推荐）
-                                  deploy        （覆盖，自动备份）
-                                                 │
-                          ├──→ ~/.codex/skills/
-                          ├──→ ~/.cursor/skills-cursor/
-                          ├──→ ~/.cursor/rules/skills/
-                          └──→ ~/clawd/skills/
+【第一步：汇聚】
+
+~/.codex/skills/          ┐
+~/.cursor/skills-cursor/  ├──→ import ──→ ~/.claude/skills/   ← 统一管理中心
+~/clawd/skills/           ┘       （只新增，不覆盖已有）
+
+                               在此整理、筛选、新建 skill
+
+【第二步：分发】
+
+~/.claude/skills/
+        │
+        stage（预览转换结果，不改任何 live 目录）
+        │
+        ├──→ staging/codex-skills/
+        ├──→ staging/cursor-skills/
+        ├──→ staging/cursor-mdc/
+        └──→ staging/openclaw-skills/
+        │
+        deploy --merge（增量新增，推荐）
+        deploy        （完全替换，自动备份）
+        │
+        ├──→ ~/.codex/skills/
+        ├──→ ~/.cursor/skills-cursor/
+        ├──→ ~/.cursor/rules/skills/
+        └──→ ~/clawd/skills/
 ```
 
-`import` 扫描 Codex / Cursor / OpenClaw 中有但 Claude 没有的 skill，单向导入到 Claude（不覆盖已有）。
+`import` 扫描 Codex / Cursor / OpenClaw 中有但 Claude 没有的 skill，导入到 Claude（不覆盖已有）。整理好后，通过 `stage` + `deploy` 分发回各工具。
 
 ### 命令说明
 
