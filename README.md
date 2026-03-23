@@ -230,9 +230,11 @@ skills_lyf/
 
 ## 跨工具 Skill 同步
 
-不同 AI 工具各有自己的 skill 格式，手动维护多份配置非常繁琐。`tools/sync.py` 解决这个问题：
+不同 AI 工具各有自己的 skill 格式，手动维护多份配置非常繁琐。`tools/sync.py` 以 **Claude 为统一管理中心**，分两步解决：
 
-- **双向互通**：各工具的 skill 可互相导入，Claude 作为中间格式（canonical format）
+1. **汇聚**：把 Codex / Cursor / OpenClaw 的 skill 导入 Claude 格式，在 Claude 中统一整理、筛选
+2. **分发**：把 Claude 中好用的 skill 转换成各工具格式，按需部署出去
+
 - **非破坏性**：`import` 和 `deploy --merge` 均只新增，不覆盖已有 skill
 - **格式自动转换**：一份 skill，自动适配各工具的 frontmatter 格式
 
