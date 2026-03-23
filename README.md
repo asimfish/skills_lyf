@@ -1,115 +1,289 @@
 # skills_lyf
 
-> 个人 Claude Code / Codex / Cursor 配置一键部署套件
+> 个人 Claude Code / Codex / Cursor 配置一键部署套件，附带跨工具 skill 自动同步系统
 
-本仓库汇总了在 macOS 上使用 Claude Code、Codex CLI、Cursor 进行 AI 辅助开发的全套配置，包含：
+[![GitHub stars](https://img.shields.io/github/stars/asimfish/skills_lyf?style=flat-square)](https://github.com/asimfish/skills_lyf)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+
+本仓库汇总了在 macOS 上使用 Claude Code、Codex CLI、Cursor 进行 AI 辅助开发的全套配置：
 
 - **128 个 Claude Code skills**（含 [ARIS](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep) 研究自动化全集）
 - **21 个 subagents**（code-reviewer、architect、ml-debugger 等）
-- **14 条 rules**（common + python，编码规范、安全、测试等）
+- **14 条 rules**（编码规范、安全、测试等）
 - **3 个自研 MCP servers**（codex-dispatch、git-orchestra、llm-chat）
 - **5 个 Cursor skills**
 - **scholar local plugin**（arxiv / crossref 学术搜索）
-- **ccline 状态栏**（主题配置）
-- **workflow** — tmux + Claude + Codex + GitHub + Obsidian + 飞书 多项目开发工作流
+- **ccline 状态栏主题**
+- **workflow** — tmux + Claude + Codex + GitHub + Obsidian + 飞书多项目开发工作流
+- **tools/sync.py** — 跨工具 skill 统一同步系统
+
+---
+
+## 目录
+
+- [快速开始](#快速开始)
+- [目录结构](#目录结构)
+- [跨工具 Skill 同步](#跨工具-skill-同步)
+- [模块详解](#模块详解)
+- [环境要求](#环境要求)
+- [安全说明](#安全说明)
+- [致谢](#致谢)
+
+---
 
 ## 快速开始
 
+### 第一步：克隆仓库
+
 ```bash
-# 1. 克隆
-git clone https://github.com/YOUR_USERNAME/skills_lyf ~/Desktop/agent/skills_lyf
-
-# 2. 一键部署
-bash ~/Desktop/agent/skills_lyf/install.sh
-
-# 3. 填入密钥
-vim ~/.claude/settings.json          # ANTHROPIC_AUTH_TOKEN
-vim ~/Desktop/agent/workflow/config/secrets.sh   # 飞书 Webhook 等
+git clone https://github.com/asimfish/skills_lyf ~/Desktop/agent/skills_lyf
+cd ~/Desktop/agent/skills_lyf
 ```
+
+### 第二步：一键部署
+
+```bash
+bash install.sh
+```
+
+install.sh 会自动完成：
+- 创建 `~/.claude/` 下的 agents、skills、rules、mcp-servers、plugins 目录并 symlink
+- 创建 `~/.cursor/skills-cursor/` 目录并 symlink Cursor skills
+- 复制 `settings.json.example` → `~/.claude/settings.json`（如果不存在）
+
+> 幂等设计：重复执行不会覆盖已有配置
+
+### 第三步：填入密钥
+
+```bash
+# 编辑 Claude Code 配置，填入你的 API Token
+vim ~/.claude/settings.json
+```
+
+找到这一行并替换：
+```json
+"ANTHROPIC_AUTH_TOKEN": "YOUR_ANTHROPIC_AUTH_TOKEN"
+```
+
+如果使用自定义 API 代理（如 aipor.cc），同时修改：
+```json
+"ANTHROPIC_BASE_URL": "https://your-proxy.com"
+```
+
+### 第四步（可选）：启动跨工具 skill 同步
+
+```bash
+# 同步 Claude skills → Cursor（自动备份原配置）
+python3 tools/sync.py deploy
+
+# 或启动后台守护进程，有新 skill 时自动同步
+bash tools/watch.sh start
+```
+
+---
 
 ## 目录结构
 
 ```
 skills_lyf/
-├── install.sh                  # 一键部署（幂等，已存在则跳过）
-├── .gitignore
+├── install.sh                    # 一键部署脚本
+├── tools/
+│   ├── sync.py                   # 跨工具 skill 同步核心脚本
+│   └── watch.sh                  # 后台自动同步守护进程
 ├── claude/
-│   ├── CLAUDE.md               # 全局系统提示
-│   ├── settings.json.example   # 配置模板（密钥留空）
-│   ├── agents/                 # 21 个 subagent 定义
-│   ├── skills/                 # 128 个 skill 目录
+│   ├── CLAUDE.md                 # 全局系统提示（行为规范）
+│   ├── settings.json.example     # 配置模板（密钥留空）
+│   ├── agents/                   # 21 个 subagent 定义
+│   ├── skills/                   # 128 个 skill 目录
 │   ├── rules/
-│   │   ├── common/             # 9 条通用规则
-│   │   └── python/             # 5 条 Python 规则
+│   │   ├── common/               # 9 条通用规则
+│   │   └── python/               # 5 条 Python 规则
 │   ├── mcp-servers/
-│   │   ├── codex-dispatch/     # Codex 任务分发 MCP
-│   │   ├── git-orchestra/      # 并行 git 工作流 MCP
-│   │   └── llm-chat/           # 通用 OpenAI-compatible LLM MCP
+│   │   ├── codex-dispatch/       # Codex 任务分发
+│   │   ├── git-orchestra/        # 并行 git 工作流
+│   │   └── llm-chat/             # 通用 LLM 对话
 │   ├── plugins/local-plugins/
-│   │   └── scholar/            # arxiv / crossref 学术插件
+│   │   └── scholar/              # 学术搜索插件
 │   └── ccline/
-│       ├── models.toml         # 模型显示名配置
-│       └── themes/             # 5 个状态栏主题
+│       ├── models.toml           # 模型显示名
+│       └── themes/               # 5 个状态栏主题
 ├── cursor/
-│   ├── mcp.json.example        # Cursor MCP 配置模板
-│   └── skills-cursor/          # 5 个 Cursor skill 目录
-└── workflow/                   # 多项目 AI 开发工作流
+│   ├── mcp.json.example          # Cursor MCP 配置模板
+│   └── skills-cursor/            # 5 个 Cursor skill 目录
+└── workflow/                     # 多项目 AI 开发工作流
     ├── install.sh
     ├── claude/CLAUDE.md
     ├── codex/dispatch.sh
     ├── experiment/iterate.sh
     ├── github/scripts/
     ├── obsidian/sync.sh
-    ├── openclaw/notify.sh
-    └── tmux/
+    └── openclaw/notify.sh
 ```
 
-## 关键组件说明
+---
 
-### Claude Code Agents
+## 跨工具 Skill 同步
 
-| Agent | 用途 |
-|-------|------|
-| code-reviewer | 代码审查，写完代码自动触发 |
-| architect | 系统设计与架构决策 |
-| ml-debugger | 训练不收敛、loss 异常诊断 |
-| paper-researcher | 论文精读与文献综述 |
-| experiment-designer | 消融实验与评估方案设计 |
-| ai-engineer | LLM 应用与 RAG 系统构建 |
-| ... | 共 21 个，见 claude/agents/ |
+这是本仓库的核心功能。不同 AI 工具（Claude Code、Cursor）各有自己的 skill 格式，手动维护多份配置非常繁琐。
 
-### MCP Servers
+`tools/sync.py` 以 **Claude Code 为唯一来源（source of truth）**，自动转换并同步到其他工具。
 
-| Server | 功能 | 依赖 |
-|--------|------|------|
-| codex-dispatch | 向 Codex CLI 分发编码任务，支持并行 | Python 3.10+ |
-| git-orchestra | 多 worktree 并行开发 + AI 冲突解决 | Python 3.10+ |
-| llm-chat | 对接任意 OpenAI-compatible API (DeepSeek/Kimi/MiniMax) | Python 3.10+ |
+### 工作原理
 
-MCP servers 依赖安装：
+```
+~/.claude/skills/          ← 唯一编辑入口
+        │
+        ├──→ staging/cursor-skills/   (预览，不影响 live)
+        ├──→ staging/cursor-mdc/      (预览，不影响 live)
+        │
+        └── deploy ──→ ~/.cursor/skills-cursor/   (Cursor Agent Skills)
+                   └──→ ~/.cursor/rules/skills/    (Cursor MDC Rules)
+```
+
+**新增 Cursor-only skill** 时，sync 会自动将其导入 Claude（不覆盖已有）。
+
+### 命令说明
+
+#### 1. 查看当前状态
+
 ```bash
-pip3 install -r ~/.claude/mcp-servers/codex-dispatch/requirements.txt
-pip3 install -r ~/.claude/mcp-servers/git-orchestra/requirements.txt
-pip3 install -r ~/.claude/mcp-servers/llm-chat/requirements.txt
+python3 tools/sync.py status
 ```
 
-在 `~/.claude/settings.json` 的 `mcpServers` 中注册：
+输出示例：
+```
+Claude skills (live) : 128
+Cursor skills (live) : 5
+MDC rules (live)     : 0
+Staging cursor       : 0
+Staging MDC          : 0
+```
+
+#### 2. 生成预览（不修改任何 live 配置）
+
+```bash
+python3 tools/sync.py stage
+```
+
+转换结果写入仓库内 `staging/` 目录（已加入 .gitignore），**不会修改 `~/.cursor/` 下任何文件**。
+
+可以先检查 staging 里的文件确认无误：
+```bash
+ls staging/cursor-skills/   # 预览 Cursor skills
+ls staging/cursor-mdc/      # 预览 MDC rules
+```
+
+#### 3. 部署到 live（自动备份）
+
+```bash
+python3 tools/sync.py deploy
+```
+
+deploy 会自动：
+1. 备份当前 `~/.cursor/skills-cursor/` → `staging/backups/cursor-skills_YYYYMMDD_HHMMSS/`
+2. 将 staging 内容写入 live
+
+如果出问题，用备份还原：
+```bash
+# 查看备份
+ls staging/backups/
+
+# 还原
+cp -r staging/backups/cursor-skills_20260323_155927/* ~/.cursor/skills-cursor/
+```
+
+#### 4. 后台自动同步守护进程
+
+```bash
+# 启动（每3秒检测 Claude skills 变化，自动 stage）
+bash tools/watch.sh start
+
+# 查看运行状态
+bash tools/watch.sh status
+
+# 停止
+bash tools/watch.sh stop
+```
+
+> watch 只做 stage（安全），不自动 deploy。确认 staging 无误后手动 `deploy` 一次即可。
+
+### 典型工作流
+
+**在 Claude Code 里新建一个 skill 后，同步到 Cursor：**
+
+```bash
+# 1. 在 Claude Code 里新建 skill（正常使用即可）
+# 2. 检查状态
+python3 tools/sync.py status
+
+# 3. 预览转换结果
+python3 tools/sync.py stage
+
+# 4. 确认无误后部署
+python3 tools/sync.py deploy
+```
+
+**或者开启后台守护 + 手动 deploy：**
+```bash
+bash tools/watch.sh start   # 后台自动 stage
+# ... 工作中新建 skill ...
+python3 tools/sync.py deploy  # 随时部署最新 staging
+```
+
+---
+
+## 模块详解
+
+### Claude Code Skills（128个）
+
+所有 skill 位于 `claude/skills/`，部署后 symlink 到 `~/.claude/skills/`。
+
+主要分类：
+
+| 分类 | 代表 skill | 说明 |
+|------|-----------|------|
+| 研究自动化 | `research-pipeline` `auto-review-loop` `idea-discovery` | 来自 ARIS，睡觉期间自动做科研 |
+| 论文写作 | `paper-write` `paper-reviewer` `paper-summarizer` | 学术论文全流程 |
+| ML 训练 | `deepspeed` `grpo-rl-training` `vllm` | 分布式训练、RLHF |
+| 代码质量 | `coding-standards` `tdd-workflow` `verification-loop` | 编码规范、测试驱动 |
+| 后端开发 | `backend-patterns` `django-patterns` `postgres-patterns` | 框架最佳实践 |
+| 内容创作 | `article-writing` `content-engine` | 文章、营销内容 |
+
+### Subagents（21个）
+
+位于 `claude/agents/`，使用 `Agent` tool 自动调用：
+
+| Agent | 触发时机 |
+|-------|----------|
+| `code-reviewer` | 写完/修改代码后 |
+| `architect` | 系统设计决策 |
+| `ml-debugger` | 训练不收敛、loss 异常 |
+| `paper-researcher` | 论文精读、文献综述 |
+| `security-reviewer` | 涉及认证、用户输入时 |
+| `tdd-guide` | 新功能、bug 修复 |
+
+### MCP Servers（3个）
+
+位于 `claude/mcp-servers/`，需在 `settings.json` 中注册：
+
+#### codex-dispatch
+Codex 任务分发，支持并行执行多个编码任务。
+
+#### git-orchestra
+并行 git 工作流，自动创建 worktree 隔离并行开发。
+
+#### llm-chat
+通用 OpenAI-compatible LLM 对话，支持 DeepSeek / Kimi / MiniMax 等：
+
 ```json
+// settings.json 中配置
 {
   "mcpServers": {
-    "codex-dispatch": {
-      "command": "python3",
-      "args": ["~/.claude/mcp-servers/codex-dispatch/server.py"]
-    },
-    "git-orchestra": {
-      "command": "python3",
-      "args": ["~/.claude/mcp-servers/git-orchestra/server.py"]
-    },
     "llm-chat": {
       "command": "python3",
       "args": ["~/.claude/mcp-servers/llm-chat/server.py"],
       "env": {
-        "LLM_API_KEY": "YOUR_KEY",
+        "LLM_API_KEY": "your-key",
         "LLM_BASE_URL": "https://api.deepseek.com/v1",
         "LLM_MODEL": "deepseek-chat"
       }
@@ -118,50 +292,57 @@ pip3 install -r ~/.claude/mcp-servers/llm-chat/requirements.txt
 }
 ```
 
-### ccline 状态栏
-
-ccline 二进制需手动安装（macOS arm64）：
-```bash
-# 从 release 下载或自行编译
-# 安装后放到 ~/.claude/ccline/ccline
-chmod +x ~/.claude/ccline/ccline
-```
-
-主题切换：编辑 `~/.claude/settings.json` 中的 `statusLine.command`。
-
 ### workflow 多项目工作流
 
+4个 tmux 会话协作：
+
+| 会话 | 用途 |
+|------|------|
+| `OT` | Claude 主编排器 |
+| `WAM` | Codex Worker 监控 |
+| `SAT` | GitHub / 成本 / Obsidian 状态 |
+| `TOOLS` | 系统监控 / 临时 shell |
+
 ```bash
-cd ~/Desktop/agent/workflow
-bash install.sh          # 首次初始化
-vim config/secrets.sh    # 填入飞书 Webhook、SSH Key 路径等
-bash tmux/scripts/start.sh  # 启动四会话 tmux
+cd workflow
+bash install.sh
+vim config/secrets.sh      # 飞书 Webhook 等
+bash tmux/scripts/start.sh # 启动
 ```
 
-详见 `workflow/README.md`。
+---
 
 ## 环境要求
 
-| 工具 | 版本 | 说明 |
-|------|------|------|
-| macOS | 14+ | Apple Silicon 推荐 |
-| Claude Code (claude) | latest | `npm i -g @anthropic-ai/claude-code` |
-| Codex CLI (codex) | latest | `npm i -g @openai/codex` |
-| Python | 3.10+ | MCP servers 依赖 |
-| tmux | 3.0+ | workflow 多会话 |
-| gh | 2.0+ | GitHub CLI |
-| jq | 1.6+ | JSON 处理 |
+| 工具 | 最低版本 | 安装方式 |
+|------|---------|----------|
+| macOS | 14+ | — |
+| Claude Code | latest | `npm i -g @anthropic-ai/claude-code` |
+| Python | 3.10+ | `brew install python` |
+| tmux | 3.0+ | `brew install tmux` |
+| gh | 2.0+ | `brew install gh` |
+| jq | 1.6+ | `brew install jq` |
+| Cursor | latest | [cursor.sh](https://cursor.sh) |
+
+> Codex CLI 和 ccline 为可选，不影响 Claude Code 核心功能。
+
+---
 
 ## 安全说明
 
-- `settings.json` 中的 `ANTHROPIC_AUTH_TOKEN` **不在仓库中**，使用 `settings.json.example` 模板
-- `workflow/config/secrets.sh` 已加入 `.gitignore`
-- MCP server 的 API Key 通过环境变量注入，不硬编码
+- `settings.json` 中的 `ANTHROPIC_AUTH_TOKEN` **不在仓库中**，使用 `settings.json.example` 模板手动填写
+- `workflow/config/secrets.sh`（飞书 Webhook 等）已加入 `.gitignore`
+- MCP server 的 API Key 通过环境变量注入，不硬编码在代码里
+- sync.py 的 deploy 操作会在修改前自动备份，可随时回滚
+
+---
 
 ## 致谢
 
 - [ARIS](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep) — 研究自动化 skill 体系（已集成全集）
-- [Everything Claude Code](https://github.com/hesreallyhim/everything-claude-code) — skill 框架
+- [Everything Claude Code](https://github.com/hesreallyhim/everything-claude-code) — skill 框架设计
+
+---
 
 ## License
 
