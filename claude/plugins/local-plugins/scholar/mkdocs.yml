@@ -1,0 +1,243 @@
+site_name: Scholar Plugin
+site_description: Academic workflows for research and teaching - 33 commands for literature management, manuscript writing, simulation studies, and course material generation
+site_url: https://data-wise.github.io/scholar/
+
+repo_name: Data-Wise/scholar
+repo_url: https://github.com/Data-Wise/scholar
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - macros
+
+extra:
+  scholar:
+    version: "2.17.0"
+    prev_version: "2.16.0"
+    release_date: "2026-03-04"
+    test_count: "3,340"
+    jest_count: "3,203"
+    node_test_count: "137"
+    command_count: 33
+    teaching_commands: 18
+    research_commands: 14
+    hub_commands: 1
+    suite_count: 137
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - ⚡ ADHD Quick Start: ADHD-QUICK-START.md
+      - 🚀 Quick Start: QUICK-START.md
+      - 📖 User Guide: USER-GUIDE.md
+      - 📚 Reference Card: REFCARD.md
+      - 🔍 Scholar Hub Tutorial: tutorials/getting-started-with-hub.md
+
+  - Teaching:
+      - Overview: teaching/index.md
+      - Commands Reference: TEACHING-COMMANDS-REFERENCE.md
+      - Quick Reference Cards:
+          - Commands: refcards/teaching-commands.md
+          - Assignments & Rubrics: refcards/assignments-rubrics.md
+          - Teaching Workflows: refcards/teaching-workflows.md
+      - Workflows: TEACHING-WORKFLOWS.md
+      - Tutorials:
+          - First Exam: tutorials/teaching/first-exam.md
+          - Semester Setup: tutorials/teaching/semester-setup.md
+          - Weekly Content Creation: tutorials/teaching/weekly-content.md
+          - Assignments, Solutions & Rubrics: tutorials/teaching/assignments-solutions-rubrics.md
+          - Lecture Notes Production: tutorials/teaching/lecture-notes.md
+          - Slide Revision & Validation (v2.8.0): tutorials/teaching/slide-revision-validation.md
+          - Course Configuration: tutorials/teaching/configuration.md
+          - Config Management: tutorials/teaching/config-management.md
+          - Generating Syllabi: tutorials/teaching/syllabus.md
+          - Creating Quizzes: tutorials/teaching/quiz.md
+          - Student Feedback: tutorials/teaching/feedback.md
+          - Custom Instructions (v2.11.0): tutorials/teaching/custom-instructions.md
+          - Lesson Plans & Manifests (Phase 2): tutorials/teaching/lesson-plans-manifest.md
+          - Demo Course Setup (Phase 2): tutorials/teaching/demo-course.md
+          - R Code Validation: tutorials/teaching/r-code-validation.md
+          - Preflight Checks: tutorials/teaching/preflight-checks.md
+          - R Validation Pipeline: tutorials/teaching/validate-pipeline.md
+          - Email Integration: tutorials/teaching/email-integration.md
+          - Validation & Auto-Fix (Phase 2): tutorials/teaching/validate-and-fix.md
+          - Sync & Diff Workflows (Phase 2): tutorials/teaching/sync-and-diff.md
+          - Migration v1 → v2 (Phase 2): tutorials/teaching/migration.md
+          - Learning Path: tutorials/teaching/learning-path.md
+      - Advanced Tutorials:
+          - Canvas LMS Integration: tutorials/advanced/lms-integration.md
+          - Custom Prompts: tutorials/advanced/custom-prompts.md
+      - Reference:
+          - Style Guide: TEACHING-STYLE-GUIDE.md
+          - Output Formats: OUTPUT-FORMATS-GUIDE.md
+          - Prompt Customization: PROMPT-CUSTOMIZATION-GUIDE.md
+          - Exam Generator: EXAM-GENERATOR.md
+          - Canvas (QTI Export): teaching/canvas.md
+          - Canvas QTI Pipeline Guide: canvas-qti-guide.md
+          - Auto-Fixer Guide: AUTO-FIXER-GUIDE.md
+          - Validation Tools: VALIDATION-TOOLS.md
+          - Phase 2 User Guide: PHASE2-USER-GUIDE.md
+          - GitHub Actions Setup: github-actions-setup.md
+          - .flow/ Directory: FLOW-DIRECTORY-REFERENCE.md
+          - Configuration: CONFIGURATION.md
+          - Config Architecture Deep Dive: DEEP-DIVE-teach-config-architecture.md
+          - Phase 2 Config & Flow API: PHASE2-CONFIG-FLOW-API.md
+          - API Reference: TEACHING-COMMANDS-API.md
+      - Examples:
+          - Command Examples: COMMAND-EXAMPLES.md
+          - Teaching Examples Hub: examples/teaching.md
+
+  - Research:
+      - Overview: research/index.md
+      - Full Command Reference: help/RESEARCH-COMMANDS-REFERENCE.md
+      - Command Guides:
+          - Literature Commands: research/LITERATURE-COMMANDS.md
+          - Manuscript Commands: research/MANUSCRIPT-COMMANDS.md
+          - Simulation Commands: research/SIMULATION-COMMANDS.md
+          - All Commands Overview: research/RESEARCH-COMMANDS-REFERENCE.md
+      - Quick Reference: refcards/research-commands.md
+      - Workflows:
+          - Workflow Overview: research/RESEARCH-WORKFLOWS-SECTION-3.md
+          - Literature Review: workflows/research/literature-review.md
+          - Research Automation: workflows/research/automation.md
+          - Command Chaining: workflows/research/command-chaining.md
+          - LaTeX Integration: workflows/research/latex-integration.md
+          - flow-cli Integration: workflows/research/flow-integration.md
+          - Publication Automation: workflows/research/publication-automation.md
+          - Reproducible Research: workflows/research/reproducibility.md
+          - Reviewer Response: workflows/research/reviewer-response.md
+          - Simulation Study: workflows/research/simulation-study.md
+          - Manuscript Writing: workflows/research/manuscript-writing.md
+          - Gap Analysis: workflows/research/gap-analysis.md
+      - Tutorials:
+          - First Literature Search: tutorials/research/first-literature-search.md
+          - Reviewer Response: tutorials/research/reviewer-response.md
+          - Writing Methods Sections: tutorials/research/methods-section.md
+          - Simulation Design: tutorials/research/simulation-design.md
+          - Simulation Study Guide: tutorials/research/simulation-study.md
+          - Analysis Planning: tutorials/research/analysis-planning.md
+          - Manuscript Writing: tutorials/research/manuscript-writing.md
+      - Examples:
+          - Research Examples Hub: examples/research.md
+          - Manuscript Writing Hub: examples/manuscripts.md
+          - Methods Sections: examples/methods-sections.md
+          - Results Sections: examples/results-sections.md
+          - Reviewer Responses: examples/reviewer-responses.md
+          - Simulation Studies: examples/simulations.md
+
+  - Help:
+      - Quick Reference: QUICK-REFERENCE.md
+      - Teaching FAQ: help/FAQ-teaching.md
+      - Research FAQ: help/FAQ-research.md
+      - Common Issues: help/COMMON-ISSUES.md
+      - Teaching Troubleshooting: help/TROUBLESHOOTING-teaching.md
+      - Research Troubleshooting: help/TROUBLESHOOTING-research.md
+
+  - Developers:
+      - Getting Started:
+          - Contributing Guide: CONTRIBUTING.md
+          - Developer Guide: DEVELOPER-GUIDE.md
+          - Commands Overview: commands.md
+      - Quality & Testing:
+          - Testing Guide: TESTING-GUIDE.md
+          - Security Testing Guide: SECURITY-TESTING-GUIDE.md
+          - Test Strategy (Config-Flow): TEST-STRATEGY-config-flow-integration.md
+      - Code Reference:
+          - API Reference: API-REFERENCE.md
+          - Skills: skills.md
+          - API Wrappers: api-wrappers.md
+      - Internal:
+          - Overview: internal/index.md
+          - Release Checklist: internal/release-checklist.md
+          - Version Sync: internal/version-sync.md
+          - Decision Log: internal/decision-log.md
+          - Session Conventions: internal/session-conventions.md
+          - Prompt Authoring: internal/prompt-authoring.md
+          - Schema & Template Conventions: internal/schema-conventions.md
+          - CI/CD Pipeline: internal/ci-pipeline.md
+          - Insights Report (Feb 2026): internal/insights-2026-02.md
+          - Doc Coverage Report: DOC-COVERAGE-REPORT.md
+          - Doc Validation Report (v2.3.0): DOC-VALIDATION-REPORT-v2.3.0.md
+
+
+  - Architecture:
+      - Overview: ARCHITECTURE.md
+      - System Diagrams: ARCHITECTURE-DIAGRAMS.md
+      - Phase 2 Architecture: PHASE2-ARCHITECTURE-DIAGRAMS.md
+      - Lecture Pipeline: LECTURE-PIPELINE-DIAGRAMS.md
+      - Weekly Lecture Production (v2.5.0): v2.5.0-weekly-lecture-production.md
+      - Foundation:
+          - Phase 0 Foundation: architecture/PHASE-0-FOUNDATION.md
+
+  - Release Notes:
+      - What's New in v2.17.0: WHATS-NEW-v2.17.0.md
+      - What's New in v2.16.0: WHATS-NEW-v2.16.0.md
+      - Canvas QTI Enhancements: WHATS-NEW-canvas-qti.md
+      - What's New in v2.15.0: WHATS-NEW-v2.15.0.md
+      - What's New in v2.14.0: WHATS-NEW-v2.14.0.md
+      - What's New in v2.13.0: WHATS-NEW-v2.13.0.md
+      - What's New in v2.12.0: WHATS-NEW-v2.12.0.md
+      - What's New in v2.11.0: WHATS-NEW-v2.11.0.md
+      - What's New in v2.9.0: WHATS-NEW-v2.9.0.md
+      - What's New in v2.8.0: WHATS-NEW-v2.8.0.md
+      - What's New in v2.7.0: WHATS-NEW-v2.7.0.md
+      - What's New in v2.6.0: WHATS-NEW-v2.6.0.md
+      - What's New in v2.5.0: WHATS-NEW-v2.5.0.md
+      - What's New in v2.4.0: WHATS-NEW-v2.4.0.md
+      - What's New in v2.3.0: WHATS-NEW-v2.3.0.md
+      - What's New in v2.2.0: WHATS-NEW-v2.2.0.md
+      - Migration Guide (v2.2.0): MIGRATION-v2.2.0.md

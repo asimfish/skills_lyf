@@ -1,0 +1,423 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Syllabus Template",
+  "description": "Schema for course syllabus generation",
+  "type": "object",
+  "required": ["title", "course_code", "semester", "instructor", "description", "learning_objectives", "grading", "schedule"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Course title"
+    },
+    "course_code": {
+      "type": "string",
+      "description": "Course number/code (e.g., STAT 440, MATH 101)"
+    },
+    "semester": {
+      "type": "string",
+      "description": "Semester/term (e.g., Fall 2026, Spring 2027)"
+    },
+    "credits": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 6,
+      "description": "Credit hours"
+    },
+    "level": {
+      "type": "string",
+      "enum": ["undergraduate", "graduate", "doctoral"],
+      "description": "Course level"
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Course prerequisites"
+    },
+    "corequisites": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Course corequisites"
+    },
+    "instructor": {
+      "type": "object",
+      "required": ["name", "email"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Instructor name"
+        },
+        "title": {
+          "type": "string",
+          "description": "Academic title (e.g., Professor, Associate Professor)"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Contact email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact phone"
+        },
+        "office": {
+          "type": "string",
+          "description": "Office location"
+        },
+        "office_hours": {
+          "type": "string",
+          "description": "Office hours schedule"
+        },
+        "website": {
+          "type": "string",
+          "format": "uri",
+          "description": "Personal or course website"
+        }
+      }
+    },
+    "teaching_assistants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "email"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "office_hours": {
+            "type": "string"
+          },
+          "office": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Teaching assistants"
+    },
+    "meeting_times": {
+      "type": "object",
+      "properties": {
+        "days": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+          },
+          "description": "Meeting days"
+        },
+        "time": {
+          "type": "string",
+          "description": "Meeting time (e.g., 10:00 AM - 11:15 AM)"
+        },
+        "location": {
+          "type": "string",
+          "description": "Classroom location"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["in-person", "online", "hybrid"],
+          "description": "Delivery format"
+        }
+      }
+    },
+    "description": {
+      "type": "string",
+      "minLength": 50,
+      "description": "Course description"
+    },
+    "learning_objectives": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "string"
+      },
+      "description": "Course learning objectives (measurable, actionable)"
+    },
+    "required_materials": {
+      "type": "object",
+      "properties": {
+        "textbooks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "author": {
+                "type": "string"
+              },
+              "edition": {
+                "type": "string"
+              },
+              "isbn": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "software": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "license": {
+                "type": "string",
+                "enum": ["free", "student-license", "university-provided", "purchase-required"]
+              }
+            }
+          }
+        },
+        "other": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Other required materials"
+        }
+      }
+    },
+    "grading": {
+      "type": "object",
+      "required": ["components", "scale"],
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "percentage"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Component name (e.g., Homework, Midterm, Final)"
+              },
+              "percentage": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Weight as percentage"
+              },
+              "details": {
+                "type": "string",
+                "description": "Additional details about this component"
+              },
+              "drop_lowest": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Number of lowest scores to drop"
+              }
+            }
+          }
+        },
+        "scale": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["grade", "minimum"],
+            "properties": {
+              "grade": {
+                "type": "string",
+                "description": "Letter grade (e.g., A, A-, B+)"
+              },
+              "minimum": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Minimum percentage for this grade"
+              },
+              "maximum": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Maximum percentage for this grade"
+              }
+            }
+          }
+        },
+        "late_policy": {
+          "type": "string",
+          "description": "Policy for late submissions"
+        },
+        "extra_credit": {
+          "type": "string",
+          "description": "Extra credit policy"
+        }
+      }
+    },
+    "schedule": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["week", "topic"],
+        "properties": {
+          "week": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Week number"
+          },
+          "dates": {
+            "type": "string",
+            "description": "Date range for this week"
+          },
+          "topic": {
+            "type": "string",
+            "description": "Topic for the week"
+          },
+          "readings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Assigned readings"
+          },
+          "assignments_due": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Assignments due this week"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes (e.g., exam this week)"
+          },
+          "is_break": {
+            "type": "boolean",
+            "default": false,
+            "description": "True if this is a break week"
+          }
+        }
+      },
+      "description": "Course schedule by week"
+    },
+    "policies": {
+      "type": "object",
+      "properties": {
+        "attendance": {
+          "type": "string",
+          "description": "Attendance policy"
+        },
+        "participation": {
+          "type": "string",
+          "description": "Class participation expectations"
+        },
+        "academic_integrity": {
+          "type": "string",
+          "description": "Academic integrity policy"
+        },
+        "accessibility": {
+          "type": "string",
+          "description": "Accessibility and accommodations statement"
+        },
+        "communication": {
+          "type": "string",
+          "description": "Communication policy (email response time, etc.)"
+        },
+        "technology": {
+          "type": "string",
+          "description": "Technology in classroom policy"
+        },
+        "emergency": {
+          "type": "string",
+          "description": "Emergency procedures"
+        },
+        "mental_health": {
+          "type": "string",
+          "description": "Mental health resources statement"
+        },
+        "diversity": {
+          "type": "string",
+          "description": "Diversity and inclusion statement"
+        },
+        "recording": {
+          "type": "string",
+          "description": "Lecture recording policy"
+        }
+      }
+    },
+    "important_dates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["date", "event"],
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Date of the event"
+          },
+          "event": {
+            "type": "string",
+            "description": "Event description"
+          }
+        }
+      },
+      "description": "Key dates (exams, project deadlines, etc.)"
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "tutoring": {
+          "type": "string",
+          "description": "Tutoring services available"
+        },
+        "writing_center": {
+          "type": "string",
+          "description": "Writing center information"
+        },
+        "library": {
+          "type": "string",
+          "description": "Library resources"
+        },
+        "technology_support": {
+          "type": "string",
+          "description": "IT support information"
+        },
+        "supplemental_materials": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Supplemental learning resources"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "generator": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+---
+title: "Mixed Language Chunks"
+format: html
+---
+
+# Mixed Language Document
+
+## R chunk (should be extracted)
+
+```{r r-chunk}
+x <- 1:10
+mean(x)
+```
+
+## Python chunk (should be ignored)
+
+```{python}
+import numpy as np
+print(np.mean([1, 2, 3]))
+```
+
+## Bash chunk (should be ignored)
+
+```{bash}
+echo "Hello from bash"
+```
+
+## Another R chunk
+
+```{r second-r}
+y <- 2:20
+summary(y)
+```
+
+## Plain code block (no language, should be ignored)
+
+```
+This is just a code block
+```

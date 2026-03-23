@@ -1,0 +1,554 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://scholar.datawise.dev/schemas/v2/lesson-plans-manifest.schema.json",
+  "title": "Lesson Plans Manifest Schema",
+  "description": "Schema for .flow/lesson-plans.yml manifest files that define semester-wide lesson plan structure",
+  "type": "object",
+  "required": ["schema_version", "semester", "weeks"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "Manifest schema version"
+    },
+    "semester": {
+      "type": "object",
+      "required": ["total_weeks", "schedule"],
+      "additionalProperties": false,
+      "properties": {
+        "total_weeks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 52,
+          "description": "Total number of weeks in the semester"
+        },
+        "schedule": {
+          "type": "string",
+          "enum": ["MWF", "TR", "weekly", "custom"],
+          "description": "Class meeting schedule pattern"
+        },
+        "milestones": {
+          "type": "array",
+          "description": "Key semester milestones (exams, breaks, projects)",
+          "items": {
+            "$ref": "#/definitions/milestone"
+          }
+        }
+      }
+    },
+    "weeks": {
+      "type": "array",
+      "minItems": 0,
+      "description": "Array of week-level lesson plan entries",
+      "items": {
+        "$ref": "#/definitions/weekEntry"
+      }
+    }
+  },
+  "definitions": {
+    "milestone": {
+      "type": "object",
+      "required": ["week", "type", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "week": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 52,
+          "description": "Week number for this milestone"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["midterm", "break", "final", "holiday", "project"],
+          "description": "Milestone type"
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable milestone label"
+        }
+      }
+    },
+    "weekEntry": {
+      "type": "object",
+      "required": ["week", "title"],
+      "additionalProperties": false,
+      "properties": {
+        "week": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 52,
+          "description": "Week number in the course (1-52)"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Lesson title"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "generated", "reviewed", "published"],
+          "default": "draft",
+          "description": "Lesson plan production status"
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Optional subtitle or description"
+        },
+        "date_range": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "string",
+              "format": "date",
+              "description": "Start date (YYYY-MM-DD)"
+            },
+            "end": {
+              "type": "string",
+              "format": "date",
+              "description": "End date (YYYY-MM-DD)"
+            }
+          }
+        },
+        "learning_objectives": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "description": "Learning objectives for this week (IEEE LOM: Educational.LearningResourceType)",
+          "items": {
+            "$ref": "#/definitions/learningObjective"
+          }
+        },
+        "topics": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 15,
+          "description": "Topics covered this week (IEEE LOM: Educational.Content)",
+          "items": {
+            "$ref": "#/definitions/topic"
+          }
+        },
+        "materials": {
+          "type": "object",
+          "description": "Required materials (IEEE LOM: Technical.Format)",
+          "properties": {
+            "readings": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/reading"
+              }
+            },
+            "datasets": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/dataset"
+              }
+            },
+            "software": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/software"
+              }
+            }
+          }
+        },
+        "activities": {
+          "type": "array",
+          "description": "In-class activities (IEEE LOM: Educational.InteractivityType)",
+          "items": {
+            "$ref": "#/definitions/activity"
+          }
+        },
+        "assessments": {
+          "type": "array",
+          "description": "Assessments for this week (IEEE LOM: Educational.Assessment)",
+          "items": {
+            "$ref": "#/definitions/assessment"
+          }
+        },
+        "lecture_structure": {
+          "type": "array",
+          "description": "Lecture segment breakdown",
+          "items": {
+            "$ref": "#/definitions/lectureSegment"
+          }
+        },
+        "prerequisites": {
+          "type": "object",
+          "description": "Prerequisites from previous weeks",
+          "properties": {
+            "topics": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^T-\\d+\\.\\d+$"
+              }
+            },
+            "skills": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "prepares_for": {
+          "type": "object",
+          "description": "What this week prepares students for",
+          "properties": {
+            "topics": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^T-\\d+\\.\\d+$"
+              }
+            },
+            "skills": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "File metadata (IEEE LOM: General.Identifier, LifeCycle)",
+          "properties": {
+            "created": {
+              "type": "string",
+              "format": "date"
+            },
+            "updated": {
+              "type": "string",
+              "format": "date"
+            },
+            "version": {
+              "type": "string",
+              "pattern": "^\\d+\\.\\d+(\\.\\d+)?$"
+            },
+            "author": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["draft", "generated", "reviewed", "published", "archived"]
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "teaching_style_overrides": {
+          "type": "object",
+          "description": "Per-week overrides for the course teaching style profile",
+          "properties": {
+            "pacing": {
+              "type": "string",
+              "enum": ["slow", "moderate", "fast"]
+            },
+            "interactivity": {
+              "type": "string",
+              "enum": ["low", "medium", "high"]
+            },
+            "formality": {
+              "type": "string",
+              "enum": ["casual", "moderate", "formal"]
+            }
+          }
+        },
+        "prompt_hints": {
+          "type": "object",
+          "description": "Per-week prompt template variables that merge as Layer 4 values",
+          "additionalProperties": true
+        }
+      }
+    },
+    "learningObjective": {
+      "type": "object",
+      "required": ["id", "level", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^LO-\\d+\\.\\d+$",
+          "description": "Unique identifier (e.g., LO-3.1)"
+        },
+        "level": {
+          "type": "string",
+          "enum": ["remember", "understand", "apply", "analyze", "evaluate", "create"],
+          "description": "Bloom's taxonomy level"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 500,
+          "description": "Objective description"
+        },
+        "assessment_method": {
+          "type": "string",
+          "description": "How this objective is assessed"
+        }
+      }
+    },
+    "topic": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^T-\\d+\\.\\d+$",
+          "description": "Unique identifier (e.g., T-3.1)"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200,
+          "description": "Topic name"
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^T-\\d+\\.\\d+$"
+          },
+          "description": "Topic IDs that must be covered first"
+        },
+        "subtopics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Subtopic names"
+        }
+      }
+    },
+    "reading": {
+      "type": "object",
+      "required": ["type", "title"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["textbook", "article", "chapter", "webpage", "video", "podcast"],
+          "description": "Reading material type"
+        },
+        "title": {
+          "type": "string",
+          "description": "Material title"
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "chapter": {
+          "type": "string"
+        },
+        "pages": {
+          "type": "string"
+        },
+        "doi": {
+          "type": "string",
+          "pattern": "^10\\.\\d{4,}/.+$"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "required": {
+          "type": "boolean",
+          "default": true
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Dataset identifier"
+        },
+        "file": {
+          "type": "string",
+          "description": "File path relative to course root"
+        },
+        "description": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "description": "Dataset dimensions (e.g., '506 observations, 14 variables')"
+        },
+        "source": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "software": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "activity": {
+      "type": "object",
+      "required": ["id", "type", "title"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^A-\\d+\\.\\d+$",
+          "description": "Activity identifier (e.g., A-3.1)"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "in-class-practice",
+            "group-discussion",
+            "individual-exercise",
+            "lab-activity",
+            "peer-review",
+            "presentation",
+            "think-pair-share",
+            "demonstration"
+          ]
+        },
+        "duration_minutes": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 180
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "learning_objectives": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^LO-\\d+\\.\\d+$"
+          },
+          "description": "Learning objectives addressed"
+        },
+        "materials": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Required dataset or material names"
+        }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "required": ["type", "id", "title"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["homework", "quiz", "exam", "project", "presentation", "participation"]
+        },
+        "id": {
+          "type": "string",
+          "description": "Assessment identifier (e.g., HW-3, Q-3)"
+        },
+        "title": {
+          "type": "string"
+        },
+        "due_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date for in-class assessments"
+        },
+        "points": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "topics": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^T-\\d+\\.\\d+$"
+          }
+        },
+        "learning_objectives": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^LO-\\d+\\.\\d+$"
+          }
+        }
+      }
+    },
+    "lectureSegment": {
+      "type": "object",
+      "required": ["segment", "duration_minutes"],
+      "properties": {
+        "segment": {
+          "type": "string",
+          "enum": [
+            "review",
+            "introduction",
+            "example",
+            "practice",
+            "discussion",
+            "demonstration",
+            "break",
+            "assessment",
+            "wrap-up"
+          ]
+        },
+        "duration_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        },
+        "content": {
+          "type": "string",
+          "description": "What happens in this segment"
+        },
+        "teaching_method": {
+          "type": "string",
+          "enum": [
+            "mini-lecture",
+            "instructor-demo",
+            "guided-practice",
+            "independent-practice",
+            "socratic-discussion",
+            "peer-instruction",
+            "think-pair-share"
+          ]
+        }
+      }
+    }
+  }
+}

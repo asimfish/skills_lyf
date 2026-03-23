@@ -1,0 +1,32 @@
+scholar:
+  course_info:
+    code: "STAT-440"
+    title: "Regression Analysis"
+    level: "undergraduate"
+    field: "statistics"
+    difficulty: "intermediate"
+    semester: "Fall 2025"
+    instructor:
+      name: "Dr. Jane Smith"
+      email: "jane.smith@university.edu"
+      office: "Stats Building 301"
+
+  defaults:
+    exam_format: "markdown"
+    question_types:
+      - "multiple-choice"
+      - "short-answer"
+      - "essay"
+      - "numerical"
+
+  style:
+    tone: "formal"
+    notation: "statistical"
+    examples: true
+    verbosity: "detailed"
+
+  ai_generation:
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.7
+    max_tokens: 4096
+    timeout: 30000

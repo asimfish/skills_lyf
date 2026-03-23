@@ -1,0 +1,191 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Exam Template",
+  "description": "Schema for exam content generation",
+  "type": "object",
+  "required": ["title", "exam_type", "questions"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Exam title"
+    },
+    "exam_type": {
+      "type": "string",
+      "enum": ["midterm", "final", "practice", "quiz"],
+      "description": "Type of exam"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 300,
+      "description": "Exam duration in minutes"
+    },
+    "total_points": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total possible points"
+    },
+    "instructions": {
+      "type": "string",
+      "description": "General instructions for the exam"
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "text", "points"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^Q[0-9]+$",
+            "description": "Question ID (e.g., Q1, Q2)"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["multiple-choice", "short-answer", "essay", "true-false", "numerical"],
+            "description": "Question type"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Question text (may include LaTeX)"
+          },
+          "points": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Points awarded for this question"
+          },
+          "options": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string"
+            },
+            "description": "Answer options (for multiple-choice, true-false)"
+          },
+          "rubric": {
+            "type": "string",
+            "description": "Grading rubric (for essay questions)"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard"],
+            "default": "medium",
+            "description": "Question difficulty level"
+          },
+          "topic": {
+            "type": "string",
+            "description": "Topic or concept tested"
+          },
+          "hints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional hints for students"
+          }
+        },
+        "if": {
+          "properties": {
+            "type": {
+              "const": "multiple-choice"
+            }
+          }
+        },
+        "then": {
+          "required": ["options"],
+          "properties": {
+            "options": {
+              "minItems": 2
+            }
+          }
+        }
+      }
+    },
+    "answer_key": {
+      "type": "object",
+      "description": "Answer key mapping question IDs to answers",
+      "patternProperties": {
+        "^Q[0-9]+$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Answer for multiple-choice, true-false, or short-answer"
+            },
+            {
+              "type": "number",
+              "description": "Answer for numerical questions"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "answer": {
+                  "type": "string",
+                  "description": "Sample answer or key points"
+                },
+                "rubric_points": {
+                  "type": "object",
+                  "description": "Point allocation for rubric items"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "question_ids"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Section name"
+          },
+          "instructions": {
+            "type": "string",
+            "description": "Section-specific instructions"
+          },
+          "question_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^Q[0-9]+$"
+            },
+            "description": "Question IDs in this section"
+          }
+        }
+      },
+      "description": "Optional exam sections grouping related questions"
+    },
+    "formula_sheet": {
+      "type": "string",
+      "description": "Formulas provided to students (LaTeX format)"
+    },
+    "resources_allowed": {
+      "type": "object",
+      "properties": {
+        "calculator": {
+          "type": "boolean",
+          "default": true
+        },
+        "notes": {
+          "type": "boolean",
+          "default": false
+        },
+        "textbook": {
+          "type": "boolean",
+          "default": false
+        },
+        "computer": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "Resources students are allowed to use"
+    }
+  }
+}

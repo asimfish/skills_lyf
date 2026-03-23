@@ -1,0 +1,22 @@
+# Fixture: Pure v1 deprecated fields
+# Expected: Auto-fixer M1.3 should detect and propose migrations
+
+scholar_v1:  # Deprecated: should be 'scholar'
+  course_info:
+    level: "graduate"
+    field: "statistics"
+    difficulty: "advanced"
+    instructor_name: "Prof. Smith"  # Deprecated: should be 'instructor'
+
+  defaults:
+    exam_format: "quarto"
+    lecture_format: "markdown"
+    question_types:
+      - "multiple-choice"
+      - "short-answer"
+
+  style:
+    tone: "formal"
+    notation: "statistical"
+    examples: true
+    show_solutions: true  # Deprecated: should be 'include_solutions'

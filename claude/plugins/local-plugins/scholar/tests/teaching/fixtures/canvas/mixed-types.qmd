@@ -1,0 +1,49 @@
+---
+title: "Mixed Types Exam"
+---
+
+# Statistics Mixed Types Exam
+
+Show your work where applicable.
+
+## Question 1 [10 pts]
+
+What is the median of {1, 3, 5, 7, 9}?
+
+a) 3
+b) 5 [x]
+c) 7
+d) 9
+
+## Question 2 [5 pts]
+
+The normal distribution is symmetric.
+
+a) True [x]
+b) False
+
+## Question 3 [20 pts]
+
+Discuss the assumptions of linear regression and explain why each is important.
+
+## Question 4 [10 pts]
+
+Calculate the standard deviation of the dataset {4, 8, 6, 5, 3}.
+
+**Answer:** 1.87
+
+## Question 5 [15 pts]
+
+Match the following statistical tests with their appropriate use cases:
+
+- t-test :: Comparing two group means
+- ANOVA :: Comparing three or more group means
+- Chi-square :: Testing association between categorical variables
+- Correlation :: Measuring linear relationship between two variables
+
+## Question 6 [10 pts]
+
+The [blank1] is a measure of spread, while the [blank2] is a measure of central tendency.
+
+[blank1]: standard deviation, variance
+[blank2]: mean, median, mode

@@ -1,0 +1,14 @@
+{
+  "input": "Include detailed examples for every concept. Don't include examples, keep it theoretical only.",
+  "commandType": "lecture",
+  "expected": {
+    "content": [
+      "Include detailed examples for every concept",
+      "Don't include examples, keep it theoretical only"
+    ],
+    "style": [],
+    "format": [],
+    "constraints": []
+  },
+  "note": "The contradiction detection happens during merge, not during analyze"
+}

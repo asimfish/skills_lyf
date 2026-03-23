@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "title": "Mixed Question Types Quiz",
+    "date": "2026-02-27",
+    "course": "STAT-301: Introduction to Statistics"
+  },
+  "generated_by": {
+    "tool": "scholar",
+    "version": "2.15.0",
+    "model": "claude-opus-4-6",
+    "command": "/teaching:quiz",
+    "timestamp": "2026-02-27T12:00:00Z"
+  },
+  "title": "Quiz - All Question Types",
+  "exam_type": "quiz",
+  "duration_minutes": 30,
+  "total_points": 50,
+  "instructions": "This quiz covers all supported question types. Answer every question.",
+  "questions": [
+    {
+      "id": "Q1",
+      "type": "multiple-choice",
+      "text": "Which measure of central tendency is most affected by outliers?",
+      "options": [
+        "Median",
+        "Mode",
+        "Mean",
+        "Trimmed mean"
+      ],
+      "points": 5,
+      "difficulty": "easy",
+      "topic": "descriptive statistics"
+    },
+    {
+      "id": "Q2",
+      "type": "multiple-answer",
+      "text": "Select ALL measures of variability.",
+      "options": [
+        "Range",
+        "Mean",
+        "Standard deviation",
+        "Interquartile range"
+      ],
+      "points": 5,
+      "difficulty": "easy",
+      "topic": "descriptive statistics"
+    },
+    {
+      "id": "Q3",
+      "type": "true-false",
+      "text": "The median is always equal to the 50th percentile.",
+      "points": 3,
+      "difficulty": "easy",
+      "topic": "descriptive statistics"
+    },
+    {
+      "id": "Q4",
+      "type": "short-answer",
+      "text": "Name the theorem that states sample means approach a normal distribution as sample size increases.",
+      "points": 5,
+      "difficulty": "medium",
+      "topic": "probability"
+    },
+    {
+      "id": "Q5",
+      "type": "numerical",
+      "text": "Calculate the variance of the dataset {2, 4, 6, 8}. Use the population formula.",
+      "points": 5,
+      "difficulty": "medium",
+      "topic": "descriptive statistics"
+    },
+    {
+      "id": "Q6",
+      "type": "essay",
+      "text": "Explain the difference between Type I and Type II errors in hypothesis testing. Provide a real-world example of each and discuss the trade-off between them when choosing a significance level.",
+      "points": 10,
+      "difficulty": "hard",
+      "topic": "hypothesis testing"
+    },
+    {
+      "id": "Q7",
+      "type": "matching",
+      "text": "Match each probability distribution with its key characteristic.",
+      "pairs": [
+        { "left": "Normal", "right": "Bell-shaped, symmetric" },
+        { "left": "Binomial", "right": "Fixed number of trials, two outcomes" },
+        { "left": "Poisson", "right": "Count of events in fixed interval" }
+      ],
+      "points": 6,
+      "difficulty": "medium",
+      "topic": "probability"
+    },
+    {
+      "id": "Q8",
+      "type": "fill-in-multiple-blanks",
+      "text": "In a normal distribution, approximately [blank1]% of data falls within one standard deviation and [blank2]% within two standard deviations of the mean.",
+      "points": 4,
+      "difficulty": "easy",
+      "topic": "probability"
+    },
+    {
+      "id": "Q9",
+      "type": "fill-in-blank",
+      "text": "The statistical test used to compare means of two independent groups is called a [___].",
+      "points": 3,
+      "difficulty": "easy",
+      "topic": "hypothesis testing"
+    },
+    {
+      "id": "Q10",
+      "type": "file-upload",
+      "text": "Upload your R script that performs a one-sample t-test on the provided dataset.",
+      "points": 4,
+      "difficulty": "hard",
+      "topic": "hypothesis testing"
+    }
+  ],
+  "answer_key": {
+    "Q1": "C",
+    "Q2": ["A", "C", "D"],
+    "Q3": "True",
+    "Q4": "Central Limit Theorem",
+    "Q5": "5",
+    "Q6": null,
+    "Q7": null,
+    "Q8": { "blank1": "68", "blank2": "95" },
+    "Q9": "t-test",
+    "Q10": null
+  }
+}

@@ -1,0 +1,40 @@
+---
+title: "Lint Warnings Example"
+format: html
+---
+
+# Code with lint issues
+
+## Anti-pattern: setwd
+
+```{r bad-setwd}
+setwd("/Users/student/Desktop/homework")
+x <- 1:10
+```
+
+## Anti-pattern: absolute path
+
+```{r bad-path}
+data <- read.csv("/home/student/data/file.csv")
+```
+
+## Anti-pattern: install.packages
+
+```{r bad-install}
+install.packages("ggplot2")
+library(ggplot2)
+```
+
+## Anti-pattern: rm(list=ls())
+
+```{r bad-rm}
+rm(list=ls())
+x <- 1:10
+```
+
+## Clean chunk (no warnings)
+
+```{r clean}
+y <- mean(1:10)
+cat("Mean:", y, "\n")
+```

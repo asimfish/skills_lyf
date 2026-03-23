@@ -1,0 +1,85 @@
+week: 1
+title: "Descriptive Statistics"
+subtitle: "Summarizing and visualizing data with measures of center and spread"
+status: published
+date_range:
+  start: "2026-01-20"
+  end: "2026-01-22"
+
+learning_objectives:
+  - id: "LO-1.1"
+    level: understand
+    description: "Distinguish between categorical and quantitative variables and identify appropriate summary measures for each type"
+    assessment_method: "In-class practice worksheet"
+  - id: "LO-1.2"
+    level: apply
+    description: "Calculate and interpret measures of central tendency (mean, median, mode) for real-world datasets"
+    assessment_method: "Homework problems"
+  - id: "LO-1.3"
+    level: apply
+    description: "Calculate and interpret measures of variability (range, IQR, variance, standard deviation) and explain what they reveal about data spread"
+    assessment_method: "Homework problems"
+  - id: "LO-1.4"
+    level: analyze
+    description: "Select and construct appropriate graphical displays (histogram, boxplot, bar chart) based on variable type and research question"
+    assessment_method: "Lab activity"
+
+topics:
+  - id: "T-1.1"
+    name: "Types of Data"
+    subtopics:
+      - "Categorical vs. quantitative variables"
+      - "Levels of measurement (nominal, ordinal, interval, ratio)"
+      - "Population vs. sample"
+  - id: "T-1.2"
+    name: "Measures of Central Tendency"
+    subtopics:
+      - "Mean, median, and mode"
+      - "When to use each measure"
+      - "Effect of skewness on mean vs. median"
+  - id: "T-1.3"
+    name: "Measures of Variability"
+    subtopics:
+      - "Range and interquartile range (IQR)"
+      - "Variance and standard deviation"
+      - "Interpreting spread in context"
+  - id: "T-1.4"
+    name: "Data Visualization"
+    subtopics:
+      - "Histograms and frequency distributions"
+      - "Boxplots and five-number summaries"
+      - "Choosing the right graph"
+
+activities:
+  - id: "A-1.1"
+    type: lecture
+    title: "Types of Data and Central Tendency"
+    duration_minutes: 25
+  - id: "A-1.2"
+    type: practice
+    title: "Calculating Summary Statistics"
+    duration_minutes: 15
+  - id: "A-1.3"
+    type: lecture
+    title: "Variability and Visualization"
+    duration_minutes: 20
+
+lecture_structure:
+  - segment: introduction
+    duration_minutes: 5
+    content: "Review of data types and variable classification"
+  - segment: example
+    duration_minutes: 15
+    content: "Worked examples of mean, median, mode calculations"
+  - segment: practice
+    duration_minutes: 10
+    content: "Students calculate measures for given datasets"
+  - segment: example
+    duration_minutes: 10
+    content: "Variance, standard deviation, IQR"
+  - segment: discussion
+    duration_minutes: 5
+    content: "Choosing appropriate visualizations"
+  - segment: wrap-up
+    duration_minutes: 5
+    content: "Summary and preview of next lecture"

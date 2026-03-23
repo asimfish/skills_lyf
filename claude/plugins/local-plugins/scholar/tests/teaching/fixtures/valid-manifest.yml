@@ -1,0 +1,76 @@
+schema_version: "1.0"
+semester:
+  total_weeks: 15
+  schedule: "TR"
+  milestones:
+    - week: 8
+      type: midterm
+      label: "Midterm Exam"
+    - week: 10
+      type: break
+      label: "Spring Break"
+    - week: 16
+      type: final
+      label: "Final Exam"
+weeks:
+  - week: 1
+    title: "Introduction to Regression"
+    status: published
+    learning_objectives:
+      - id: LO-1.1
+        level: understand
+        description: "Understand the concept of simple linear regression"
+    topics:
+      - id: T-1.1
+        name: "Simple Linear Regression"
+        subtopics:
+          - "Least squares estimation"
+          - "Residuals and fitted values"
+    materials:
+      readings:
+        - type: textbook
+          title: "Applied Linear Regression"
+          chapter: "Ch. 1"
+      datasets:
+        - name: mtcars
+          description: "Motor Trend car data"
+    activities:
+      - id: A-1.1
+        type: in-class-practice
+        title: "Fit a simple regression model"
+        duration_minutes: 25
+    lecture_structure:
+      - segment: review
+        duration_minutes: 5
+      - segment: introduction
+        duration_minutes: 30
+      - segment: practice
+        duration_minutes: 25
+      - segment: wrap-up
+        duration_minutes: 15
+  - week: 2
+    title: "Multiple Regression"
+    status: draft
+    learning_objectives:
+      - id: LO-2.1
+        level: apply
+        description: "Fit and interpret multiple regression models"
+    topics:
+      - id: T-2.1
+        name: "Multiple Regression"
+        subtopics:
+          - "Matrix formulation"
+          - "Coefficient interpretation"
+  - week: 3
+    title: "Model Diagnostics"
+    status: draft
+    learning_objectives:
+      - id: LO-3.1
+        level: analyze
+        description: "Diagnose regression model assumptions"
+    topics:
+      - id: T-3.1
+        name: "Residual Analysis"
+        subtopics:
+          - "QQ plots"
+          - "Heteroscedasticity"

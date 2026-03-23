@@ -1,0 +1,107 @@
+{
+  "name": "@data-wise/scholar",
+  "version": "2.17.0",
+  "description": "Academic workflows for research and teaching - 33 commands for literature management, manuscript writing, simulation studies, course material generation, and config management",
+  "main": "src/plugin-api/commands/index.js",
+  "type": "module",
+  "exports": {
+    "./schemas": "./src/teaching/schemas/v2/index.js",
+    "./schemas/lesson-plan": "./src/teaching/schemas/v2/lesson-plan.schema.json",
+    "./schemas/teaching-style": "./src/teaching/schemas/v2/teaching-style.schema.json",
+    "./schemas/lesson-plans-manifest": "./src/teaching/schemas/v2/lesson-plans-manifest.schema.json"
+  },
+  "keywords": [
+    "claude-code",
+    "claude-plugin",
+    "academic",
+    "research",
+    "teaching",
+    "literature-search",
+    "manuscript-writing",
+    "simulation-studies",
+    "course-materials",
+    "arxiv",
+    "bibtex",
+    "syllabus",
+    "quiz",
+    "exam",
+    "grading-rubric"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Data-Wise/scholar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Data-Wise/scholar/issues"
+  },
+  "homepage": "https://github.com/Data-Wise/scholar#readme",
+  "author": {
+    "name": "Data-Wise",
+    "email": "dt@stat-wise.com"
+  },
+  "license": "MIT",
+  "scripts": {
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
+    "test:discovery": "node --test --test-concurrency=1 tests/discovery/*.test.js tests/commands/hub.test.js",
+    "test:plugin": "bash tests/test-plugin-structure.sh",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "format": "prettier --write 'src/**/*.js' 'tests/**/*.js'",
+    "format:check": "prettier --check 'src/**/*.js' 'tests/**/*.js'",
+    "install-plugin": "./scripts/install.sh",
+    "install-plugin-dev": "./scripts/install.sh --dev",
+    "uninstall-plugin": "./scripts/uninstall.sh",
+    "setup-hooks": "node scripts/setup-hooks.js",
+    "sync": "node scripts/sync-yaml.js",
+    "sync:status": "node scripts/sync-yaml.js --status",
+    "validate": "node scripts/sync-yaml.js --status",
+    "sync:version": "node scripts/version-sync.js",
+    "sync:version:dry": "node scripts/version-sync.js --dry-run",
+    "preversion": "npm test",
+    "version": "node scripts/version-sync.js && git add package.json README.md CLAUDE.md .claude-plugin/plugin.json tests/README.md mkdocs.yml docs/TEACHING-WORKFLOWS.md docs/help/FAQ-research.md docs/help/FAQ-teaching.md docs/help/TROUBLESHOOTING-teaching.md docs/workflows/research/latex-integration.md docs/workflows/research/literature-review.md docs/workflows/research/manuscript-writing.md",
+    "postversion": "echo '\\n  Run: git push && git push --tags\\n'"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "files": [
+    ".claude-plugin/",
+    "src/",
+    "lib/",
+    "scripts/",
+    "tests/",
+    "docs/",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "ajv-keywords": "^5.1.0",
+    "glob": "^13.0.2",
+    "js-yaml": "^4.1.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.0",
+    "globals": "^17.3.0",
+    "jest": "^30.2.0",
+    "prettier": "^3.8.1"
+  },
+  "optionalDependencies": {
+    "examark": "^0.6.6"
+  },
+  "peerDependencies": {
+    "examark": "^0.6.6"
+  },
+  "peerDependenciesMeta": {
+    "examark": {
+      "optional": true
+    }
+  }
+}

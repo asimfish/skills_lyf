@@ -1,0 +1,32 @@
+scholar:
+  course_info:
+    code: "STAT-679"
+    title: "Advanced Statistical Methods"
+    level: "graduate"
+    field: "statistics"
+    difficulty: "hard"
+    semester: "Spring 2025"
+    instructor:
+      name: "Dr. Robert Chen"
+      email: "r.chen@university.edu"
+      office: "Research Tower 502"
+
+  defaults:
+    exam_format: "latex"
+    question_types:
+      - "essay"
+      - "numerical"
+      - "short-answer"
+
+  style:
+    tone: "academic"
+    notation: "mathematical"
+    examples: true
+    verbosity: "comprehensive"
+    rigor: "high"
+
+  ai_generation:
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.6
+    max_tokens: 8192
+    timeout: 45000

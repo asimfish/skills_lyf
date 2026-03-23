@@ -1,0 +1,27 @@
+---
+title: "Multi-Part Exam"
+---
+
+# Multi-Part Statistics Exam
+
+Answer all parts of each question.
+
+## Problem 1 [25 pts]
+
+Consider the dataset: {12, 15, 18, 22, 25, 30, 35}.
+
+**(a)** [10 pts] Calculate the sample mean $\bar{x}$.
+
+**(b)** [10 pts] Calculate the sample standard deviation $s$.
+
+**(c)** [5 pts] Would you expect the population mean $\mu$ to be within one standard deviation of $\bar{x}$? Explain.
+
+## Problem 2 [25 pts]
+
+A researcher claims that the average study time for students is 20 hours per week.
+
+**(a)** [5 pts] State the null and alternative hypotheses.
+
+**(b)** [15 pts] Given a sample of $n = 36$ students with $\bar{x} = 22$ hours and $s = 6$ hours, conduct a hypothesis test at $\alpha = 0.05$.
+
+**(c)** [5 pts] What is the p-value? State your conclusion.

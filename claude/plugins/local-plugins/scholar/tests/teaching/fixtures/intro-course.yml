@@ -1,0 +1,30 @@
+scholar:
+  course_info:
+    code: "STAT-101"
+    title: "Introduction to Statistics"
+    level: "undergraduate"
+    field: "statistics"
+    difficulty: "easy"
+    semester: "Fall 2025"
+    instructor:
+      name: "Dr. Maria Garcia"
+      email: "m.garcia@university.edu"
+
+  defaults:
+    exam_format: "markdown"
+    question_types:
+      - "multiple-choice"
+      - "true-false"
+      - "short-answer"
+
+  style:
+    tone: "friendly"
+    notation: "simple"
+    examples: true
+    verbosity: "concise"
+
+  ai_generation:
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.8
+    max_tokens: 3072
+    timeout: 25000

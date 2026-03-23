@@ -1,0 +1,16 @@
+# Fixture: Syntax issues (parseable but poorly formatted)
+# Expected: Auto-fixer QW1 should normalize formatting
+
+week: 1
+title:    "Introduction to Statistics"
+learning_objectives:
+  - id: "LO1"
+    description:   "Understand basic statistical concepts"
+    cognitive_level: "understand"
+  - id: "LO2"
+    description: "Apply statistical methods"
+    cognitive_level: "apply"
+topics:
+  - name:   "Descriptive Statistics"
+    difficulty: "beginner"
+    content_type: "theory"

@@ -1,0 +1,60 @@
+---
+title: "Assignment 4 Solution Key: Checking Model Assumptions"
+author: "STAT-101"
+date: "2026-02-10"
+format: html
+---
+
+# Assignment 4: Checking Model Assumptions
+
+## Setup
+
+```{r setup}
+#| echo: true
+pacman::p_load(tidyverse, car, performance)
+```
+
+## Problem 1: Normality Check
+
+```{r normality-check}
+#| echo: true
+set.seed(42)
+sample_data <- rnorm(100, mean = 50, sd = 10)
+
+# QQ-plot
+qqnorm(sample_data)
+qqline(sample_data, col = "red")
+
+# Shapiro-Wilk test
+shapiro.test(sample_data)
+```
+
+## Problem 2: Variance Homogeneity
+
+```{r levene-test}
+#| echo: true
+groups <- rep(c("A", "B", "C"), each = 30)
+values <- c(rnorm(30, 50, 10), rnorm(30, 52, 12), rnorm(30, 48, 11))
+df <- data.frame(group = groups, value = values)
+
+# Levene's test
+car::leveneTest(value ~ group, data = df)
+```
+
+## Problem 3: Plot-only chunk
+
+```{r diagnostic-plots}
+#| echo: true
+model <- lm(value ~ group, data = df)
+par(mfrow = c(2, 2))
+plot(model)
+```
+
+## Problem 4: Skipped chunk (not evaluated)
+
+```{r optional-advanced, eval=FALSE}
+#| eval: false
+# This chunk is for advanced students only
+# Should be SKIPPED during validation
+performance::check_model(model)
+```

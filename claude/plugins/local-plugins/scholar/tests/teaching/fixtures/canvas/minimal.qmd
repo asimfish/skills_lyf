@@ -1,0 +1,13 @@
+---
+title: "Minimal Quiz"
+---
+
+# Minimal Quiz
+
+## Question 1 [5 pts]
+
+What is $2 + 2$?
+
+a) 3
+b) 4 [x]
+c) 5

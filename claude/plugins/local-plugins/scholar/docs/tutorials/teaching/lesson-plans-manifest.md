@@ -1,0 +1,352 @@
+# Tutorial: Working with Lesson Plans Manifests
+
+**Time:** 5-7 minutes
+**Prerequisites:**
+
+- Scholar plugin installed (`brew install scholar` or manual installation)
+- Claude Code running
+- Basic understanding of YAML syntax
+
+**What you'll learn:**
+
+- Understand the lesson plans manifest structure
+- Create and populate a manifest file
+- Edit week entries (status, topics, learning objectives)
+- Validate manifest schema compliance
+- Connect manifests to Scholar's teaching commands
+
+---
+
+## Step 1: What is a Manifest? ⏱️ 1 minute
+
+**What to know:**
+
+A **lesson plans manifest** is a single YAML file at `.flow/lesson-plans.yml` that contains your entire semester structure in one place. Instead of maintaining separate `week01.yml`, `week02.yml`, etc. files, Phase 2 consolidates everything into this unified manifest.
+
+**Structure:**
+
+```yaml
+schema_version: "1.0"        # Format version
+
+semester:                    # Semester-level metadata
+  total_weeks: 15
+  schedule: "TR"            # Tuesday/Thursday classes
+  milestones:               # Key dates (midterms, breaks)
+    - week: 8
+      type: midterm
+
+weeks:                       # Array of weekly entries
+  - week: 1
+    title: "Course Introduction"
+    status: draft           # Lifecycle tracking
+    learning_objectives: []
+    topics: []
+    activities: []
+```
+
+**Why manifests matter:**
+
+- Single source of truth for course planning
+- Bidirectional sync with flow-cli workflows
+- Schema validation for consistency
+- External tool integration (VS Code, JSON schema)
+
+---
+
+## Step 2: Create a Demo Course ⏱️ 1 minute
+
+**What to do:**
+
+Use Scholar's demo scaffolding to create a complete manifest with sample content.
+
+**Example:**
+
+```bash
+/teaching:demo
+```
+
+**What you'll get:**
+
+This creates a `.flow/` directory with:
+
+```
+demo-course/
+└── .flow/
+    ├── teach-config.yml       # Course configuration
+    └── lesson-plans.yml       # 15-week manifest (3 detailed + 12 stubs)
+```
+
+The manifest includes:
+- 3 detailed example weeks (weeks 1, 3, 5) with full content
+- 12 stub weeks (weeks 2, 4, 6-15) marked as `status: draft`
+- Semester metadata with milestones (midterm at week 8, final at week 16)
+
+**Checkpoint:**
+
+Verify the files exist:
+
+```bash
+ls -la .flow/
+```
+
+You should see `teach-config.yml` and `lesson-plans.yml`.
+
+---
+
+## Step 3: Understand Manifest Structure ⏱️ 2 minutes
+
+**What to do:**
+
+Open `.flow/lesson-plans.yml` and examine its three main sections.
+
+**Section 1: Schema Version**
+
+```yaml
+schema_version: "1.0"
+```
+
+This ensures compatibility with future manifest format changes. Always use `"1.0"` for Phase 2.
+
+**Section 2: Semester Metadata**
+
+```yaml
+semester:
+  total_weeks: 15
+  schedule: "TR"              # Tuesday/Thursday (M/T/W/R/F)
+  milestones:
+    - week: 8
+      type: midterm
+      description: "Midterm Exam - Weeks 1-7"
+    - week: 16
+      type: final
+      description: "Final Exam - Comprehensive"
+```
+
+**Schedule codes:** Use `"MWF"` for Mon/Wed/Fri, `"TR"` for Tue/Thu, etc.
+
+**Milestone types:** `midterm`, `break`, `final`, `project`, `custom`
+
+**Section 3: Weeks Array**
+
+```yaml
+weeks:
+  - week: 3
+    title: "Introduction to Linear Regression"
+    status: reviewed
+    learning_objectives:
+      - id: LO-3.1
+        text: "Understand the concept of linear regression"
+        bloom_level: "understand"
+    topics:
+      - id: T-3.1
+        text: "Simple linear regression model"
+        estimated_time: 45
+    activities:
+      - id: A-3.1
+        type: "lecture"
+        duration: 75
+        description: "Interactive lecture on regression basics"
+```
+
+**Key fields:**
+
+- `week`: Week number (1-based)
+- `title`: Human-readable week name
+- `status`: Lifecycle state (draft/generated/reviewed/published)
+- `learning_objectives`, `topics`, `activities`: Structured content arrays
+
+---
+
+## Step 4: Edit a Week Entry ⏱️ 1 minute
+
+**What to do:**
+
+Customize week 1 by adding learning objectives and updating its status.
+
+**Example edit:**
+
+```yaml
+weeks:
+  - week: 1
+    title: "Course Introduction"
+    status: draft              # Change to "reviewed" after editing
+    learning_objectives:
+      - id: LO-1.1
+        text: "Understand course expectations and grading policy"
+        bloom_level: "understand"
+      - id: LO-1.2
+        text: "Set up development environment (R, RStudio)"
+        bloom_level: "apply"
+    topics:
+      - id: T-1.1
+        text: "Course overview and syllabus review"
+        estimated_time: 30
+      - id: T-1.2
+        text: "Introduction to statistical software"
+        estimated_time: 45
+```
+
+**ID conventions:**
+
+- Learning objectives: `LO-{week}.{number}` (e.g., `LO-1.1`, `LO-1.2`)
+- Topics: `T-{week}.{number}` (e.g., `T-1.1`)
+- Activities: `A-{week}.{number}` (e.g., `A-1.1`)
+- Assessments: `HW-{number}`, `EXAM-{number}`, `QUIZ-{number}`
+
+**Status lifecycle:**
+
+- `draft` - Initial planning, not ready for generation
+- `generated` - Content generated by Scholar commands
+- `reviewed` - Instructor has reviewed and approved
+- `published` - Deployed to LMS or made available to students
+
+**Checkpoint:**
+
+Your week 1 entry should now have at least 2 learning objectives and 2 topics.
+
+---
+
+## Step 5: Validate the Manifest ⏱️ 1 minute
+
+**What to do:**
+
+Run Scholar's validator to check for schema compliance and missing required fields.
+
+**Example:**
+
+```bash
+/teaching:validate
+```
+
+**What you'll see:**
+
+```
+Validating .flow/lesson-plans.yml...
+
+✓ Schema version: 1.0
+✓ Semester metadata valid
+✓ 15 weeks defined
+✓ All required fields present
+
+Summary:
+  Total weeks: 15
+  Status breakdown:
+    draft: 13
+    reviewed: 2
+  Milestones: 2 (midterm at week 8, final at week 16)
+
+✓ Manifest is valid!
+```
+
+**Common validation errors:**
+
+- Missing `schema_version` field
+- Week numbers not sequential (gaps like week 1, 3, 5 without 2, 4)
+- Invalid status values (use draft/generated/reviewed/published only)
+- Malformed YAML syntax
+
+**If validation fails:**
+
+The error message will show:
+- Line number with the issue
+- Expected vs actual values
+- Suggestions for fixing
+
+---
+
+## Step 6: Next Steps ⏱️ 1 minute
+
+**What to do:**
+
+Now that you have a valid manifest, you can:
+
+**Generate lecture content from the manifest:**
+
+```bash
+/teaching:lecture --week 3 --format qmd
+```
+
+Scholar reads week 3's learning objectives and topics from the manifest to generate contextually appropriate lecture notes.
+
+**Sync with flow-cli (if installed):**
+
+```bash
+/teaching:sync --manifest
+```
+
+This performs bidirectional sync between Scholar's manifest and flow-cli's workflow automation.
+
+**Migrate existing week files to manifest format:**
+
+If you have old `content/lesson-plans/week01.yml` files:
+
+```bash
+/teaching:migrate --to-manifest --dry-run    # Preview
+/teaching:migrate --to-manifest               # Apply
+```
+
+**Export JSON schemas for VS Code:**
+
+```bash
+/teaching:schemas export
+```
+
+This enables autocomplete and validation in VS Code when editing YAML files.
+
+---
+
+## Troubleshooting
+
+**Problem:** Validation fails with "schema_version missing"
+
+**Solution:** Add `schema_version: "1.0"` as the first line of `.flow/lesson-plans.yml`.
+
+---
+
+**Problem:** Week numbers are not sequential
+
+**Solution:** Ensure your `weeks` array includes every week from 1 to `total_weeks`. Use stub entries for unplanned weeks:
+
+```yaml
+- week: 2
+  title: "TBD"
+  status: draft
+```
+
+---
+
+**Problem:** Cannot find `.flow/lesson-plans.yml`
+
+**Solution:** Run `/teaching:demo` to scaffold a template, or create manually:
+
+```yaml
+schema_version: "1.0"
+semester:
+  total_weeks: 15
+  schedule: "TR"
+  milestones: []
+weeks: []
+```
+
+---
+
+## Summary
+
+You've learned how to:
+
+- Understand the three-section manifest structure (schema, semester, weeks)
+- Create a manifest using `/teaching:demo`
+- Edit week entries with structured metadata (learning objectives, topics, activities)
+- Use ID conventions for referencing content across weeks
+- Validate manifest schema compliance with `/teaching:validate`
+- Connect manifests to Scholar's teaching commands
+
+**Next steps:**
+
+- [Creating a Demo Course](demo-course.md) - Deep dive into scaffolding options
+- [Migrating to Manifest Format](migration.md) - Convert old directory-based week files
+- [Weekly Content Creation](weekly-content.md) - Use manifests to generate content
+
+**See also:**
+
+- [Phase 2 User Guide](../../PHASE2-USER-GUIDE.md) - Complete manifest reference

@@ -1,0 +1,10 @@
+# Fixture: Pure schema violations (missing required fields)
+# Expected: Auto-fixer M1.1 should detect and propose additions
+
+# Missing: week (required)
+title: "Introduction to Statistics"
+# Missing: learning_objectives (required array)
+topics:
+  - name: "Descriptive Statistics"
+    difficulty: "beginner"
+    content_type: "theory"

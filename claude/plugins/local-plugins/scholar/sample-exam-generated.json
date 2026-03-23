@@ -1,0 +1,152 @@
+{
+  "schema_version": "1.0",
+  "template_type": "exam",
+  "metadata": {
+    "title": "Midterm Exam - Introduction to Statistics",
+    "date": "2025-01-12"
+  },
+  "title": "Midterm Exam - Introduction to Statistics",
+  "exam_type": "midterm",
+  "duration_minutes": 75,
+  "instructions": "Answer all questions. Show your work for full credit. Use the formula sheet provided. You may use a calculator.",
+  "questions": [
+    {
+      "id": "Q1",
+      "type": "multiple-choice",
+      "text": "What measure of central tendency is most affected by extreme values (outliers)?",
+      "options": [
+        "Mean",
+        "Median",
+        "Mode",
+        "Range"
+      ],
+      "points": 5,
+      "difficulty": "easy",
+      "topic": "descriptive statistics"
+    },
+    {
+      "id": "Q2",
+      "type": "multiple-choice",
+      "text": "If a dataset has a standard deviation of 0, what can we conclude?",
+      "options": [
+        "All values in the dataset are the same",
+        "The dataset has no outliers",
+        "The mean equals the median",
+        "The data is normally distributed"
+      ],
+      "points": 5,
+      "difficulty": "easy",
+      "topic": "descriptive statistics"
+    },
+    {
+      "id": "Q3",
+      "type": "multiple-choice",
+      "text": "What is the probability of getting at least one head when flipping a fair coin twice?",
+      "options": [
+        "0.25",
+        "0.50",
+        "0.75",
+        "1.00"
+      ],
+      "points": 8,
+      "difficulty": "medium",
+      "topic": "probability"
+    },
+    {
+      "id": "Q4",
+      "type": "multiple-choice",
+      "text": "In hypothesis testing, a Type I error occurs when:",
+      "options": [
+        "We reject a true null hypothesis",
+        "We fail to reject a false null hypothesis",
+        "We accept a true alternative hypothesis",
+        "We reject a false alternative hypothesis"
+      ],
+      "points": 8,
+      "difficulty": "medium",
+      "topic": "hypothesis testing"
+    },
+    {
+      "id": "Q5",
+      "type": "multiple-choice",
+      "text": "Which of the following $p$-values provides the strongest evidence against the null hypothesis?",
+      "options": [
+        "$p = 0.001$",
+        "$p = 0.05$",
+        "$p = 0.10$",
+        "$p = 0.50$"
+      ],
+      "points": 5,
+      "difficulty": "easy",
+      "topic": "hypothesis testing"
+    },
+    {
+      "id": "Q6",
+      "type": "multiple-choice",
+      "text": "If two events $A$ and $B$ are independent, then $P(A \\cap B) = $",
+      "options": [
+        "$P(A) \\times P(B)$",
+        "$P(A) + P(B)$",
+        "$P(A) - P(B)$",
+        "$P(A) / P(B)$"
+      ],
+      "points": 8,
+      "difficulty": "medium",
+      "topic": "probability"
+    },
+    {
+      "id": "Q7",
+      "type": "short-answer",
+      "text": "Explain the difference between a population parameter and a sample statistic. Provide one example of each.",
+      "points": 12,
+      "difficulty": "medium",
+      "topic": "descriptive statistics"
+    },
+    {
+      "id": "Q8",
+      "type": "short-answer",
+      "text": "A dataset has a mean of 50 and a standard deviation of 10. Using the empirical rule (68-95-99.7 rule), what percentage of data falls between 40 and 60?",
+      "points": 12,
+      "difficulty": "medium",
+      "topic": "descriptive statistics"
+    },
+    {
+      "id": "Q9",
+      "type": "short-answer",
+      "text": "Explain what a $p$-value represents in the context of hypothesis testing. Why do we typically use $\\alpha = 0.05$ as a significance level?",
+      "points": 15,
+      "difficulty": "medium",
+      "topic": "hypothesis testing"
+    },
+    {
+      "id": "Q10",
+      "type": "essay",
+      "text": "A pharmaceutical company claims their new drug reduces blood pressure by an average of 10 mmHg. Design a hypothesis test to evaluate this claim. Include: (a) null and alternative hypotheses, (b) what Type I and Type II errors would mean in this context, and (c) which error would be more serious and why.",
+      "points": 22,
+      "difficulty": "hard",
+      "topic": "hypothesis testing",
+      "rubric": "Hypotheses stated correctly (6 pts), Type I error explained (5 pts), Type II error explained (5 pts), Analysis of error severity (6 pts)"
+    }
+  ],
+  "answer_key": {
+    "Q1": "A",
+    "Q2": "A",
+    "Q3": "C",
+    "Q4": "A",
+    "Q5": "A",
+    "Q6": "A",
+    "Q7": "A population parameter is a numerical characteristic of a population (e.g., population mean $\\mu$). A sample statistic is a numerical characteristic calculated from a sample (e.g., sample mean $\\bar{x}$). Parameters describe populations; statistics describe samples.",
+    "Q8": "Approximately 68% of the data falls within one standard deviation of the mean. Since 40 to 60 represents one standard deviation below and above the mean (50 - 10 to 50 + 10), the answer is 68%.",
+    "Q9": "The $p$-value is the probability of observing data as extreme or more extreme than what was observed, assuming the null hypothesis is true. We use $\\alpha = 0.05$ as a conventional threshold that balances the risk of Type I error (false positive) with statistical power, representing a 5% chance of incorrectly rejecting a true null hypothesis.",
+    "Q10": {
+      "answer": "H₀: μ = 0 (no reduction), H₁: μ < -10 (reduction of at least 10 mmHg). Type I error: concluding the drug works when it doesn't (patients receive ineffective treatment). Type II error: concluding the drug doesn't work when it does (patients miss beneficial treatment). Type I error is more serious because it could lead to widespread use of an ineffective drug, potentially harming patients and wasting healthcare resources.",
+      "rubric_points": {
+        "Hypotheses (6 pts)": "Correctly stated null hypothesis (μ = 0 or μ ≥ -10) and alternative hypothesis (μ < -10)",
+        "Type I Error (5 pts)": "Clearly explained as rejecting H₀ when true - drug approved when ineffective",
+        "Type II Error (5 pts)": "Clearly explained as failing to reject H₀ when false - drug not approved when effective",
+        "Error Analysis (6 pts)": "Thoughtful analysis of which error is more serious with valid reasoning about patient safety and resource allocation"
+      }
+    }
+  },
+  "formula_sheet": "Sample mean: $\\bar{x} = \\frac{1}{n}\\sum_{i=1}^{n} x_i$\n\nSample variance: $s^2 = \\frac{1}{n-1}\\sum_{i=1}^{n}(x_i - \\bar{x})^2$\n\nStandard deviation: $s = \\sqrt{s^2}$\n\nZ-score: $z = \\frac{x - \\mu}{\\sigma}$\n\nEmpirical Rule: 68% within 1 SD, 95% within 2 SD, 99.7% within 3 SD\n\nProbability rules:\n- $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$\n- If independent: $P(A \\cap B) = P(A) \\times P(B)$\n\nTest statistic: $t = \\frac{\\bar{x} - \\mu_0}{s/\\sqrt{n}}$"
+}

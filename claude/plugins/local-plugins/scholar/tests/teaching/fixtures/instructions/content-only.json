@@ -1,0 +1,13 @@
+{
+  "input": "Focus on healthcare datasets like BMI and blood pressure. Include clinical trial examples.",
+  "commandType": "exam",
+  "expected": {
+    "content": [
+      "Focus on healthcare datasets like BMI and blood pressure",
+      "Include clinical trial examples"
+    ],
+    "style": [],
+    "format": [],
+    "constraints": []
+  }
+}

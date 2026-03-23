@@ -1,0 +1,51 @@
+# 敏感信息 - 绝对不提交
+**/secrets.sh
+**/.env
+**/.env.*
+!**/.env.example
+
+# Claude 运行时数据（非配置）
+claude/projects/
+claude/history.jsonl
+claude/debug/
+claude/paste-cache/
+claude/shell-snapshots/
+claude/telemetry/
+claude/workspaces/
+claude/session-env/
+claude/tasks/
+claude/backups/
+claude/ide/
+claude/file-history/
+claude/plans/
+claude/security_warnings_state_*.json
+claude/plugins/blocklist.json*
+claude/plugins/cache/
+claude/plugins/installed_plugins.json
+claude/plugins/known_marketplaces.json
+claude/plugins/marketplaces/
+
+# ccline 二进制（macOS arm64，不跨平台）
+claude/ccline/ccline
+
+# Cursor 运行时
+cursor/ai-tracking/
+cursor/plans/
+cursor/projects/
+cursor/worktrees/
+cursor/ide_state.json
+cursor/argv.json
+
+# workflow 运行时
+workflow/codex/tasks/
+workflow/codex/results/
+workflow/experiment/results/
+workflow/experiment/logs/
+workflow/logs/
+
+# OS
+.DS_Store
+*.swp
+*.swo
+__pycache__/
+*.pyc

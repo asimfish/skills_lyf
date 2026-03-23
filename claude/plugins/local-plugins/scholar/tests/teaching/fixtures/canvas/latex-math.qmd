@@ -1,0 +1,36 @@
+---
+title: "LaTeX Math Exam"
+---
+
+# Mathematical Statistics Exam
+
+Show all derivations. Partial credit given for correct work.
+
+## Question 1 [15 pts]
+
+Given $X_1, X_2, \ldots, X_n \sim N(\mu, \sigma^2)$, what is the distribution of $\bar{X}$?
+
+a) $N(\mu, \sigma^2)$
+b) $N(\mu, \sigma^2/n)$ [x]
+c) $N(0, 1)$
+d) $t_{n-1}$
+
+## Question 2 [20 pts]
+
+Derive the maximum likelihood estimator for $\mu$ given the likelihood function:
+
+$$L(\mu) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x_i - \mu)^2}{2\sigma^2}\right)$$
+
+## Question 3 [15 pts]
+
+The moment generating function of $X \sim N(\mu, \sigma^2)$ is:
+
+$$M_X(t) = \exp\left(\mu t + \frac{\sigma^2 t^2}{2}\right)$$
+
+Use this to find $E[X]$ and $\text{Var}(X)$.
+
+## Question 4 [10 pts]
+
+If $Z \sim N(0,1)$, calculate $P(|Z| > 1.96)$.
+
+**Answer:** 0.05

@@ -1,0 +1,5 @@
+scholar:
+  course_info:
+    level: "undergraduate"
+  invalid yaml syntax here
+    - broken: indentation

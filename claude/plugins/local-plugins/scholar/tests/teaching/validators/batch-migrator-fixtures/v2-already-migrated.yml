@@ -1,0 +1,9 @@
+# Already migrated to v2
+schema_version: "2.0"
+metadata:
+  id: "week-01"
+  week: 1
+content:
+  topics: ["Linear models"]
+  learning_objectives: ["Understand regression"]
+  materials: ["Textbook chapter 3"]

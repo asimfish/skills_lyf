@@ -1,0 +1,339 @@
+name: Scholar CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  validate:
+    name: Validate Plugin Structure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check required files
+        run: |
+          test -f .claude-plugin/plugin.json || { echo "Missing plugin.json"; exit 1; }
+          test -f README.md || { echo "Missing README.md"; exit 1; }
+          test -x scripts/install.sh || { echo "Missing or non-executable install.sh"; exit 1; }
+          test -x scripts/uninstall.sh || { echo "Missing or non-executable uninstall.sh"; exit 1; }
+          echo "✅ All required files present"
+
+      - name: Validate plugin.json
+        run: |
+          # Check if jq is available
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y jq
+          fi
+
+          # Validate JSON syntax
+          jq empty .claude-plugin/plugin.json || { echo "❌ Invalid JSON in plugin.json"; exit 1; }
+
+          # Check plugin name
+          PLUGIN_NAME=$(jq -r '.name' .claude-plugin/plugin.json)
+          if [[ "$PLUGIN_NAME" != "scholar" ]]; then
+            echo "❌ Plugin name should be 'scholar', got: $PLUGIN_NAME"
+            exit 1
+          fi
+
+          # Check version exists
+          VERSION=$(jq -r '.version' .claude-plugin/plugin.json)
+          if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
+            echo "❌ Plugin version is missing"
+            exit 1
+          fi
+
+          echo "✅ plugin.json is valid (name: $PLUGIN_NAME, version: $VERSION)"
+
+      - name: Check directory structure
+        run: |
+          test -d src/plugin-api/commands || { echo "❌ Missing src/plugin-api/commands/ directory"; exit 1; }
+          test -d src/plugin-api/skills || { echo "❌ Missing src/plugin-api/skills/ directory"; exit 1; }
+          test -d lib || { echo "❌ Missing lib/ directory"; exit 1; }
+          test -d src/core || { echo "❌ Missing src/core/ directory"; exit 1; }
+          test -d src/mcp-server || { echo "❌ Missing src/mcp-server/ directory"; exit 1; }
+          echo "✅ All required directories present"
+
+      - name: Validate command count
+        run: |
+          COMMAND_COUNT=$(find src/plugin-api/commands -name "*.md" -type f | wc -l | tr -d ' ')
+          if [ "$COMMAND_COUNT" -lt 33 ]; then
+            echo "❌ Expected at least 33 commands (14 research + 18 teaching + 1 hub), found $COMMAND_COUNT"
+            exit 1
+          fi
+          echo "✅ Found $COMMAND_COUNT command files"
+
+      - name: Check teaching commands
+        run: |
+          test -f src/plugin-api/commands/teaching/syllabus.md || { echo "❌ Missing teaching:syllabus command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/assignment.md || { echo "❌ Missing teaching:assignment command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/rubric.md || { echo "❌ Missing teaching:rubric command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/slides.md || { echo "❌ Missing teaching:slides command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/quiz.md || { echo "❌ Missing teaching:quiz command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/exam.md || { echo "❌ Missing teaching:exam command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/feedback.md || { echo "❌ Missing teaching:feedback command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/lecture.md || { echo "❌ Missing teaching:lecture command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/validate.md || { echo "❌ Missing teaching:validate command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/diff.md || { echo "❌ Missing teaching:diff command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/sync.md || { echo "❌ Missing teaching:sync command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/migrate.md || { echo "❌ Missing teaching:migrate command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/demo.md || { echo "❌ Missing teaching:demo command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/config.md || { echo "❌ Missing teaching:config command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/solution.md || { echo "❌ Missing teaching:solution command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/validate-r.md || { echo "❌ Missing teaching:validate-r command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/preflight.md || { echo "❌ Missing teaching:preflight command"; exit 1; }
+          test -f src/plugin-api/commands/teaching/canvas.md || { echo "❌ Missing teaching:canvas command"; exit 1; }
+          echo "✅ All 18 teaching commands present"
+
+      - name: Check skills
+        run: |
+          SKILL_COUNT=$(find src/plugin-api/skills -name "skill.md" -o -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$SKILL_COUNT" -lt 15 ]; then
+            echo "⚠️  Expected at least 15 skills, found $SKILL_COUNT (acceptable for MVP)"
+          fi
+          echo "✅ Found $SKILL_COUNT skill files"
+
+      - name: Check API wrappers
+        run: |
+          test -f lib/arxiv-api.sh || { echo "❌ Missing arxiv-api.sh"; exit 1; }
+          test -f lib/crossref-api.sh || { echo "❌ Missing crossref-api.sh"; exit 1; }
+          test -f lib/bibtex-utils.sh || { echo "❌ Missing bibtex-utils.sh"; exit 1; }
+          echo "✅ All API wrapper files present"
+
+      - name: Check for hardcoded paths
+        run: |
+          HARDCODED_PATHS=0
+          if grep -r "/Users/" src/plugin-api/commands lib 2>/dev/null | grep -v "CLAUDE_PLUGIN_ROOT"; then
+            echo "❌ Found hardcoded /Users/ paths"
+            HARDCODED_PATHS=1
+          fi
+          if grep -r "/home/" src/plugin-api/commands lib 2>/dev/null | grep -v "CLAUDE_PLUGIN_ROOT"; then
+            echo "❌ Found hardcoded /home/ paths"
+            HARDCODED_PATHS=1
+          fi
+          if [ $HARDCODED_PATHS -eq 0 ]; then
+            echo "✅ No hardcoded paths found"
+          else
+            exit 1
+          fi
+
+      - name: Run test suite
+        run: |
+          bash tests/test-plugin-structure.sh
+
+      - name: Version consistency check
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          PLUGIN_VERSION=$(node -p "require('./.claude-plugin/plugin.json').version")
+          MKDOCS_VERSION=$(grep 'version:' mkdocs.yml | head -1 | awk '{print $2}' | tr -d '"')
+
+          PASS=true
+          if [ "$PKG_VERSION" != "$PLUGIN_VERSION" ]; then
+            echo "::error::package.json ($PKG_VERSION) != plugin.json ($PLUGIN_VERSION)"
+            PASS=false
+          fi
+          if [ "$PKG_VERSION" != "$MKDOCS_VERSION" ]; then
+            echo "::error::package.json ($PKG_VERSION) != mkdocs.yml ($MKDOCS_VERSION)"
+            PASS=false
+          fi
+
+          if [ "$PASS" = true ]; then
+            echo "✅ Version consistent: $PKG_VERSION"
+          else
+            exit 1
+          fi
+
+      - name: Merge conflict guard (command files)
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          git fetch origin "$BASE_REF" --deepen=50
+
+          # Files modified in this PR
+          PR_COMMANDS=$(git diff --name-only "origin/$BASE_REF"...HEAD -- 'src/plugin-api/commands/**/*.md' || true)
+
+          # Files modified on target branch since merge-base
+          MERGE_BASE=$(git merge-base "origin/$BASE_REF" HEAD 2>/dev/null || true)
+          if [ -z "$MERGE_BASE" ]; then
+            echo "✅ No merge base found (rebased branch) — skipping conflict guard"
+            exit 0
+          fi
+          TARGET_COMMANDS=$(git diff --name-only "$MERGE_BASE"..."origin/$BASE_REF" -- 'src/plugin-api/commands/**/*.md' || true)
+
+          if [ -z "$PR_COMMANDS" ] || [ -z "$TARGET_COMMANDS" ]; then
+            echo "✅ No overlapping command file changes detected"
+            exit 0
+          fi
+
+          # Find overlapping files
+          OVERLAP=$(comm -12 <(echo "$PR_COMMANDS" | sort) <(echo "$TARGET_COMMANDS" | sort))
+
+          if [ -n "$OVERLAP" ]; then
+            echo "::warning::⚠️ Command files modified on both this PR and $BASE_REF — potential merge conflicts:"
+            echo "$OVERLAP" | while read -r f; do
+              echo "::warning file=$f::Modified on both branches"
+            done
+          else
+            echo "✅ No overlapping command file changes detected"
+          fi
+
+      - name: Summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ All CI checks passed!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "📊 Summary:"
+          COMMAND_COUNT=$(find src/plugin-api/commands -name "*.md" -type f | wc -l | tr -d ' ')
+          SKILL_COUNT=$(find src/plugin-api/skills -name "skill.md" -o -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+          echo "  - Commands: $COMMAND_COUNT"
+          echo "  - Skills: $SKILL_COUNT"
+          echo "  - API wrappers: 3"
+          echo "  - Teaching commands: 18"
+          echo "  - Structure: Unified Plugin + MCP architecture"
+
+  test:
+    name: Run Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Test summary
+        if: always()
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📊 Test Suite Complete"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+  validate-schemas:
+    name: Validate JSON Schemas
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate lesson-plan schema
+        run: |
+          if [ -f "src/teaching/schemas/v2/lesson-plan.schema.json" ]; then
+            echo "Validating lesson-plan.schema.json..."
+            node -e "
+              const schema = require('./src/teaching/schemas/v2/lesson-plan.schema.json');
+              const Ajv = require('ajv');
+              const ajv = new Ajv({ strict: false });
+              require('ajv-keywords')(ajv);
+              require('ajv-formats')(ajv);
+              const valid = ajv.validateSchema(schema);
+              if (!valid) {
+                console.error('Schema validation failed:', ajv.errors);
+                process.exit(1);
+              }
+              console.log('✅ lesson-plan.schema.json is valid');
+            "
+          else
+            echo "⚠️ lesson-plan.schema.json not found (skipping)"
+          fi
+
+      - name: Validate teaching-style schema
+        run: |
+          if [ -f "src/teaching/schemas/v2/teaching-style.schema.json" ]; then
+            echo "Validating teaching-style.schema.json..."
+            node -e "
+              const schema = require('./src/teaching/schemas/v2/teaching-style.schema.json');
+              const Ajv = require('ajv');
+              const ajv = new Ajv({ strict: false });
+              require('ajv-keywords')(ajv);
+              require('ajv-formats')(ajv);
+              const valid = ajv.validateSchema(schema);
+              if (!valid) {
+                console.error('Schema validation failed:', ajv.errors);
+                process.exit(1);
+              }
+              console.log('✅ teaching-style.schema.json is valid');
+            "
+          else
+            echo "⚠️ teaching-style.schema.json not found (skipping)"
+          fi
+
+      - name: Verify sync engine loads
+        run: |
+          echo "Verifying sync engine can be imported..."
+          node -e "
+            import('./src/teaching/config/sync-engine.js')
+              .then(m => {
+                console.log('✅ Sync engine loaded successfully');
+                console.log('  - ConfigSyncEngine:', typeof m.ConfigSyncEngine);
+              })
+              .catch(e => {
+                console.error('❌ Failed to load sync engine:', e.message);
+                process.exit(1);
+              });
+          "
+
+      - name: Schema validation summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ Schema Validation Complete"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "Validated:"
+          echo "  - lesson-plan.schema.json"
+          echo "  - teaching-style.schema.json"
+          echo "  - sync-engine.js module"
+
+  audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Audit production deps
+        run: |
+          echo "=== Production dependency audit ==="
+          npm audit --omit=dev 2>&1 || true
+      - name: Audit all deps
+        run: |
+          echo "=== Full dependency audit ==="
+          npm audit 2>&1 || true
+      - name: Suggest fixes
+        run: |
+          echo ""
+          echo "=== Fix suggestions ==="
+          echo "Run locally to see available fixes:"
+          echo "  npm audit fix           # safe fixes only"
+          echo "  npm audit fix --force   # includes breaking changes"
+          echo ""
+          npm audit fix --dry-run 2>&1 || true

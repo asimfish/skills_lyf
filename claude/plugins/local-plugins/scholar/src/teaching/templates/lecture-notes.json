@@ -1,0 +1,265 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lecture Notes",
+  "description": "Schema for instructor-facing lecture notes (long-form Quarto documents)",
+  "type": "object",
+  "required": ["title", "topic", "learning_objectives", "sections"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Lecture notes title"
+    },
+    "topic": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Main topic of the lecture"
+    },
+    "course_code": {
+      "type": "string",
+      "description": "Course code (e.g., STAT 440)"
+    },
+    "week": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20,
+      "description": "Week number in the course"
+    },
+    "level": {
+      "type": "string",
+      "enum": ["undergraduate", "graduate", "both"],
+      "description": "Course level (supports cross-listed courses with 'both')"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Generation timestamp"
+    },
+    "teaching_style": {
+      "type": "object",
+      "description": "Teaching style from 4-layer config system",
+      "properties": {
+        "tone": {
+          "type": "string",
+          "enum": ["formal", "conversational", "engaging"],
+          "default": "formal"
+        },
+        "pedagogical_approach": {
+          "type": "string",
+          "enum": ["lecture-based", "active-learning", "problem-based", "flipped"],
+          "default": "active-learning"
+        },
+        "explanation_style": {
+          "type": "string",
+          "enum": ["rigorous", "intuitive", "rigorous-with-intuition"],
+          "default": "rigorous-with-intuition"
+        }
+      }
+    },
+    "learning_objectives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 3,
+      "maxItems": 7,
+      "description": "Learning objectives (Bloom's taxonomy action verbs)"
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/section"
+      },
+      "minItems": 5,
+      "description": "Document sections (hierarchical)"
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Bibliography references"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "total_pages": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 50
+        },
+        "total_sections": {
+          "type": "integer"
+        },
+        "code_blocks": {
+          "type": "integer"
+        },
+        "math_equations": {
+          "type": "integer"
+        },
+        "practice_problems": {
+          "type": "integer"
+        },
+        "generation_time_seconds": {
+          "type": "number"
+        },
+        "api_calls": {
+          "type": "integer"
+        }
+      },
+      "description": "Generation metadata"
+    }
+  },
+  "definitions": {
+    "section": {
+      "type": "object",
+      "required": ["id", "type", "title", "level"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^S[0-9]+(\\.[0-9]+)*$",
+          "description": "Section ID (e.g., S1, S2.1, S2.1.1)"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "introduction",
+            "concept",
+            "definition",
+            "theorem",
+            "proof",
+            "example",
+            "code",
+            "practice",
+            "discussion",
+            "summary"
+          ],
+          "description": "Section type"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Section title"
+        },
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "description": "Heading level (1=H1, 2=H2, etc.)"
+        },
+        "estimated_pages": {
+          "type": "number",
+          "minimum": 0.5,
+          "description": "Estimated page count"
+        },
+        "content": {
+          "type": "string",
+          "description": "Prose content (may include LaTeX)"
+        },
+        "math": {
+          "type": "string",
+          "description": "Primary LaTeX math content for this section"
+        },
+        "code": {
+          "type": "object",
+          "properties": {
+            "language": {
+              "type": "string",
+              "enum": ["r", "python"],
+              "default": "r"
+            },
+            "source": {
+              "type": "string",
+              "description": "Executable code (Quarto will render output)"
+            },
+            "label": {
+              "type": "string",
+              "description": "Code chunk label for cross-references"
+            },
+            "echo": {
+              "type": "boolean",
+              "default": true,
+              "description": "Show code in output"
+            },
+            "eval": {
+              "type": "boolean",
+              "default": true,
+              "description": "Execute code"
+            }
+          },
+          "description": "Executable code block"
+        },
+        "bullets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Bullet points"
+        },
+        "callout": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["note", "tip", "important", "warning", "caution"],
+              "default": "note"
+            },
+            "title": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            }
+          },
+          "description": "Quarto callout block"
+        },
+        "problems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "text"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^P[0-9]+$"
+              },
+              "text": {
+                "type": "string"
+              },
+              "solution": {
+                "type": "string"
+              },
+              "hint": {
+                "type": "string"
+              },
+              "difficulty": {
+                "type": "string",
+                "enum": ["easy", "medium", "hard"]
+              }
+            }
+          },
+          "description": "Practice problems (for practice sections)"
+        },
+        "subsections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/section"
+          },
+          "description": "Nested subsections"
+        },
+        "differentiation": {
+          "type": "object",
+          "description": "Level-specific content for cross-listed courses",
+          "properties": {
+            "undergraduate": {
+              "type": "string"
+            },
+            "graduate": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

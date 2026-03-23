@@ -1,0 +1,120 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "title": "Statistics Midterm Exam",
+    "date": "2026-01-12",
+    "course": "STAT-440: Regression Analysis"
+  },
+  "generated_by": {
+    "tool": "scholar",
+    "version": "1.0.0",
+    "model": "claude-3-5-sonnet-20241022",
+    "command": "/teaching:exam",
+    "timestamp": "2026-01-12T14:30:00Z"
+  },
+  "title": "Midterm Exam - Regression Analysis",
+  "exam_type": "midterm",
+  "duration_minutes": 60,
+  "total_points": 100,
+  "instructions": "Answer all questions. Show your work for partial credit. You may use a calculator and one 8.5x11 formula sheet (both sides). Write clearly and justify your reasoning.",
+  "questions": [
+    {
+      "id": "Q1",
+      "type": "multiple-choice",
+      "text": "In simple linear regression $Y = \\beta_0 + \\beta_1 X + \\epsilon$, which assumption is violated if the residual plot shows a funnel shape (increasing variance)?",
+      "options": [
+        "Linearity",
+        "Independence of errors",
+        "Homoscedasticity (constant variance)",
+        "Normality of errors"
+      ],
+      "points": 10,
+      "difficulty": "medium",
+      "topic": "linear regression"
+    },
+    {
+      "id": "Q2",
+      "type": "multiple-choice",
+      "text": "The coefficient of determination $R^2$ measures:",
+      "options": [
+        "The strength of the linear relationship between X and Y",
+        "The proportion of variance in Y explained by X",
+        "The probability that the regression is statistically significant",
+        "The correlation between predicted and actual values"
+      ],
+      "points": 10,
+      "difficulty": "easy",
+      "topic": "linear regression"
+    },
+    {
+      "id": "Q3",
+      "type": "multiple-choice",
+      "text": "For a 95% confidence interval for the population mean $\\mu$, which of the following is TRUE?",
+      "options": [
+        "There is a 95% probability that $\\mu$ lies in the interval",
+        "95% of sample means will fall in this interval",
+        "If we repeated sampling many times, 95% of intervals would contain $\\mu$",
+        "The interval contains 95% of the population values"
+      ],
+      "points": 10,
+      "difficulty": "medium",
+      "topic": "confidence intervals"
+    },
+    {
+      "id": "Q4",
+      "type": "short-answer",
+      "text": "A researcher finds a p-value of 0.03 when testing $H_0: \\beta_1 = 0$ vs $H_A: \\beta_1 \\neq 0$ at $\\alpha = 0.05$. Interpret this result in the context of hypothesis testing. What decision should be made and why?",
+      "points": 15,
+      "difficulty": "medium",
+      "topic": "hypothesis testing"
+    },
+    {
+      "id": "Q5",
+      "type": "short-answer",
+      "text": "Explain the difference between the standard error of the regression ($s_e$) and the standard error of the slope coefficient ($SE(\\hat{\\beta}_1)$). How are they related?",
+      "points": 15,
+      "difficulty": "hard",
+      "topic": "linear regression"
+    },
+    {
+      "id": "Q6",
+      "type": "essay",
+      "text": "A study investigates the relationship between study hours (X) and exam scores (Y) for 50 students. The regression equation is $\\hat{Y} = 45 + 5X$ with $R^2 = 0.64$. \n\n(a) Interpret the slope coefficient in context. \n(b) Interpret the $R^2$ value. \n(c) If the 95% confidence interval for $\\beta_1$ is (3.2, 6.8), what can you conclude about the relationship between study hours and exam scores?",
+      "points": 30,
+      "difficulty": "hard",
+      "topic": "linear regression",
+      "rubric": "Part (a): 10 points - Correct interpretation of slope with units and context. Part (b): 10 points - Correct interpretation of R² as proportion of variance explained. Part (c): 10 points - Conclusion about statistical significance and practical meaning since interval doesn't contain 0."
+    },
+    {
+      "id": "Q7",
+      "type": "short-answer",
+      "text": "What is the relationship between a 95% confidence interval and a two-sided hypothesis test at $\\alpha = 0.05$? Specifically, if a 95% CI for $\\beta_1$ is (2.1, 5.3), what can you conclude about testing $H_0: \\beta_1 = 0$?",
+      "points": 10,
+      "difficulty": "medium",
+      "topic": "confidence intervals"
+    }
+  ],
+  "answer_key": {
+    "Q1": "C",
+    "Q2": "B",
+    "Q3": "C",
+    "Q4": "Since p-value (0.03) < α (0.05), we reject the null hypothesis H₀: β₁ = 0. This provides statistically significant evidence that the slope is different from zero, meaning there is a significant linear relationship between the predictor and response variables. The strength of evidence against H₀ is moderate (p = 0.03).",
+    "Q5": "The standard error of regression (sₑ) measures the typical distance of observed y-values from the fitted regression line (overall model fit). The standard error of the slope SE(β̂₁) measures the uncertainty in estimating the slope coefficient β₁. They are related through: SE(β̂₁) = sₑ / √Σ(xᵢ - x̄)². As sₑ increases, SE(β̂₁) increases, making slope estimates less precise.",
+    "Q6": {
+      "answer": "(a) For each additional hour of study, exam scores increase by an average of 5 points. (b) 64% of the variability in exam scores is explained by study hours, with 36% due to other factors. (c) Since the 95% CI (3.2, 6.8) does not contain 0, we can conclude with 95% confidence that there is a positive relationship between study hours and exam scores (statistically significant at α = 0.05).",
+      "rubric_points": {
+        "Part (a) - Slope interpretation (10 pts)": "Must include: unit change in X, unit change in Y, 'average' or 'on average', correct direction",
+        "Part (b) - R² interpretation (10 pts)": "Must state: percentage/proportion of variance, what is explained (exam scores), what explains it (study hours), mention of unexplained variance is bonus",
+        "Part (c) - CI and significance (10 pts)": "Must conclude: relationship is significant, CI doesn't contain 0, positive relationship, connect to α = 0.05"
+      }
+    },
+    "Q7": "A 95% confidence interval corresponds to a two-sided test at α = 0.05. If the CI does not contain the null hypothesis value, we reject H₀ at that significance level. Since the 95% CI for β₁ is (2.1, 5.3) and does not contain 0, we would reject H₀: β₁ = 0 at α = 0.05. This means the slope is statistically significantly different from zero."
+  },
+  "formula_sheet": "**Formulas Provided:**\n\n**Simple Linear Regression:**\n- Model: $Y = \\beta_0 + \\beta_1 X + \\epsilon$\n- Slope: $\\hat{\\beta}_1 = \\frac{\\sum(x_i - \\bar{x})(y_i - \\bar{y})}{\\sum(x_i - \\bar{x})^2}$\n- Intercept: $\\hat{\\beta}_0 = \\bar{y} - \\hat{\\beta}_1\\bar{x}$\n- $R^2 = 1 - \\frac{SSE}{SST} = \\frac{SSR}{SST}$\n\n**Standard Errors:**\n- $s_e = \\sqrt{\\frac{SSE}{n-2}}$\n- $SE(\\hat{\\beta}_1) = \\frac{s_e}{\\sqrt{\\sum(x_i - \\bar{x})^2}}$\n\n**Confidence Intervals:**\n- For $\\mu$: $\\bar{x} \\pm t_{\\alpha/2, n-1} \\cdot \\frac{s}{\\sqrt{n}}$\n- For $\\beta_1$: $\\hat{\\beta}_1 \\pm t_{\\alpha/2, n-2} \\cdot SE(\\hat{\\beta}_1)$\n\n**Hypothesis Testing:**\n- Test statistic: $t = \\frac{\\hat{\\beta}_1 - \\beta_{1,0}}{SE(\\hat{\\beta}_1)}$\n- Degrees of freedom: $df = n - 2$\n\n**Notation:**\n- SST = Total Sum of Squares = $\\sum(y_i - \\bar{y})^2$\n- SSR = Regression Sum of Squares = $\\sum(\\hat{y}_i - \\bar{y})^2$\n- SSE = Error Sum of Squares = $\\sum(y_i - \\hat{y}_i)^2$",
+  "resources_allowed": {
+    "calculator": true,
+    "notes": true,
+    "textbook": false,
+    "computer": false
+  }
+}

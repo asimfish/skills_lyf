@@ -1,0 +1,18 @@
+# Test fixture: v1 schema with deprecated fields
+# - Uses v1 field names that should be migrated to v2
+
+week: 1
+date: "2026-01-15"
+
+topics:  # v1: Should be content.topics
+  - "Introduction to Linear Models"
+  - "Simple Regression"
+
+objectives:  # v1: Should be content.learning_objectives
+  - "Understand linear relationships"
+  - "Fit regression models"
+
+materials: "Textbook Chapter 3"  # v1: Should be content.materials (and array)
+
+teaching_style: "interactive"  # v1: Should be style.teaching_approach
+assessment_type: "formative"  # v1: Should be style.assessment_approach

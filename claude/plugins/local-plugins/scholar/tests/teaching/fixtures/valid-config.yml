@@ -1,0 +1,23 @@
+scholar:
+  course_info:
+    level: "graduate"
+    field: "statistics"
+    difficulty: "advanced"
+    course_code: "STAT 545"
+    course_name: "Design of Experiments"
+    instructor: "Prof. Smith"
+
+  defaults:
+    exam_format: "quarto"
+    lecture_format: "markdown"
+    question_types:
+      - "multiple-choice"
+      - "short-answer"
+      - "essay"
+      - "true-false"
+
+  style:
+    tone: "formal"
+    notation: "statistical"
+    examples: true
+    include_solutions: true

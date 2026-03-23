@@ -1,0 +1,231 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lecture Template",
+  "description": "Schema for lecture slides and content generation",
+  "type": "object",
+  "required": ["title", "topic", "learning_objectives", "slides"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Lecture title"
+    },
+    "topic": {
+      "type": "string",
+      "description": "Main topic of the lecture"
+    },
+    "course_code": {
+      "type": "string",
+      "description": "Course code (e.g., STAT 440)"
+    },
+    "week": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Week number in the course"
+    },
+    "lecture_number": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Lecture number in the course"
+    },
+    "date": {
+      "type": "string",
+      "description": "Lecture date"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "minimum": 15,
+      "maximum": 180,
+      "default": 50,
+      "description": "Lecture duration in minutes"
+    },
+    "level": {
+      "type": "string",
+      "enum": ["undergraduate", "graduate", "doctoral"],
+      "description": "Course level"
+    },
+    "learning_objectives": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 6,
+      "items": {
+        "type": "string"
+      },
+      "description": "Learning objectives for this lecture"
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Topics students should know before this lecture"
+    },
+    "format": {
+      "type": "string",
+      "enum": ["markdown", "reveal", "beamer", "quarto"],
+      "default": "markdown",
+      "description": "Output format for slides"
+    },
+    "slides": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "title"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^S[0-9]+$",
+            "description": "Slide ID (e.g., S1, S2)"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["title", "objectives", "content", "example", "definition", "theorem", "proof", "practice", "discussion", "summary", "questions", "references"],
+            "description": "Slide type"
+          },
+          "title": {
+            "type": "string",
+            "description": "Slide title/header"
+          },
+          "content": {
+            "type": "string",
+            "description": "Main slide content (may include LaTeX)"
+          },
+          "bullets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Bullet points for the slide"
+          },
+          "code": {
+            "type": "object",
+            "properties": {
+              "language": {
+                "type": "string",
+                "description": "Programming language"
+              },
+              "snippet": {
+                "type": "string",
+                "description": "Code snippet to display"
+              },
+              "output": {
+                "type": "string",
+                "description": "Expected output of the code"
+              }
+            },
+            "description": "Code block for the slide"
+          },
+          "figure": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string",
+                "description": "Description of the figure to create"
+              },
+              "alt_text": {
+                "type": "string",
+                "description": "Alt text for accessibility"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["plot", "diagram", "table", "equation"],
+                "description": "Type of visual"
+              }
+            },
+            "description": "Figure or visualization for the slide"
+          },
+          "speaker_notes": {
+            "type": "string",
+            "description": "Speaker notes for the presenter"
+          },
+          "duration_minutes": {
+            "type": "number",
+            "description": "Estimated time for this slide"
+          },
+          "subtopic": {
+            "type": "string",
+            "description": "Subtopic this slide covers"
+          }
+        }
+      },
+      "description": "Array of slide objects"
+    },
+    "handout": {
+      "type": "object",
+      "properties": {
+        "include_slides": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include slides in handout"
+        },
+        "include_notes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include speaker notes in handout"
+        },
+        "additional_content": {
+          "type": "string",
+          "description": "Additional content for handout"
+        },
+        "exercises": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Practice exercises for handout"
+        }
+      },
+      "description": "Handout configuration"
+    },
+    "readings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "pages": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "description": "Assigned readings for this lecture"
+    },
+    "next_lecture": {
+      "type": "object",
+      "properties": {
+        "topic": {
+          "type": "string"
+        },
+        "preview": {
+          "type": "string"
+        }
+      },
+      "description": "Preview of next lecture"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "generator": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

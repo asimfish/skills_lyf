@@ -1,0 +1,34 @@
+---
+title: "Broken Solution (for testing)"
+author: "STAT-101"
+format: html
+---
+
+# Intentionally Broken R Code
+
+## Chunk that should pass
+
+```{r good-chunk}
+x <- 1 + 1
+cat("Result:", x, "\n")
+```
+
+## Chunk with undefined variable
+
+```{r undefined-var}
+# This references a variable that doesn't exist
+result <- nonexistent_variable + 1
+cat("This should not print\n")
+```
+
+## Chunk with bad function call
+
+```{r bad-function}
+fake_function_xyz(1, 2, 3)
+```
+
+## Chunk that should still pass
+
+```{r final-good}
+summary(iris)
+```

@@ -1,0 +1,10 @@
+{
+  "input": "Use healthcare datasets, keep it conversational, include R code snippets, no more than 3 essay questions",
+  "commandType": "exam",
+  "expected": {
+    "content": ["Use healthcare datasets"],
+    "style": ["Keep it conversational"],
+    "format": ["Include R code snippets"],
+    "constraints": ["No more than 3 essay questions"]
+  }
+}

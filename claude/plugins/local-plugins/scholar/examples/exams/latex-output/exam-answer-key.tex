@@ -1,0 +1,126 @@
+\documentclass[11pt,letterpaper]{exam}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{longtable}
+\geometry{margin=1in}
+
+\begin{document}
+
+\begin{center}
+\LARGE \textbf{Answer Key} \\
+\large Midterm \\
+\normalsize Duration: 75 minutes
+\end{center}
+
+\noindent \textbf{Instructions:} Answer all questions. Show your work for full credit. Use the formula sheet provided. You may use a calculator.
+
+\vspace{0.25in}
+
+\begin{questions}
+
+\question[5] What measure of central tendency is most affected by extreme values (outliers)?
+
+\begin{choices}
+  \correctchoice Mean
+  \choice Median
+  \choice Mode
+  \choice Range
+\end{choices}
+
+\textbf{Answer:} A
+
+
+\question[5] If a dataset has a standard deviation of 0, what can we conclude?
+
+\begin{choices}
+  \correctchoice All values in the dataset are the same
+  \choice The dataset has no outliers
+  \choice The mean equals the median
+  \choice The data is normally distributed
+\end{choices}
+
+\textbf{Answer:} A
+
+
+\question[8] What is the probability of getting at least one head when flipping a fair coin twice?
+
+\begin{choices}
+  \choice 0.25
+  \choice 0.50
+  \correctchoice 0.75
+  \choice 1.00
+\end{choices}
+
+\textbf{Answer:} C
+
+
+\question[8] In hypothesis testing, a Type I error occurs when:
+
+\begin{choices}
+  \correctchoice We reject a true null hypothesis
+  \choice We fail to reject a false null hypothesis
+  \choice We accept a true alternative hypothesis
+  \choice We reject a false alternative hypothesis
+\end{choices}
+
+\textbf{Answer:} A
+
+
+\question[5] Which of the following $p$-values provides the strongest evidence against the null hypothesis?
+
+\begin{choices}
+  \correctchoice $p = 0.001$
+  \choice $p = 0.05$
+  \choice $p = 0.10$
+  \choice $p = 0.50$
+\end{choices}
+
+\textbf{Answer:} A
+
+
+\question[8] If two events $A$ and $B$ are independent, then $P(A \cap B) = $
+
+\begin{choices}
+  \correctchoice $P(A) \times P(B)$
+  \choice $P(A) + P(B)$
+  \choice $P(A) - P(B)$
+  \choice $P(A) / P(B)$
+\end{choices}
+
+\textbf{Answer:} A
+
+
+\question[12] Explain the difference between a population parameter and a sample statistic. Provide one example of each.
+
+\textbf{Solution:} A population parameter is a numerical characteristic of a population (e.g., population mean $\mu$). A sample statistic is a numerical characteristic calculated from a sample (e.g., sample mean $\bar{x}$). Parameters describe populations; statistics describe samples.
+
+
+\question[12] A dataset has a mean of 50 and a standard deviation of 10. Using the empirical rule (68-95-99.7 rule), what percentage of data falls between 40 and 60?
+
+\textbf{Solution:} Approximately 68\% of the data falls within one standard deviation of the mean. Since 40 to 60 represents one standard deviation below and above the mean (50 - 10 to 50 + 10), the answer is 68\%.
+
+
+\question[15] Explain what a $p$-value represents in the context of hypothesis testing. Why do we typically use $\alpha = 0.05$ as a significance level?
+
+\textbf{Solution:} The $p$-value is the probability of observing data as extreme or more extreme than what was observed, assuming the null hypothesis is true. We use $\alpha = 0.05$ as a conventional threshold that balances the risk of Type I error (false positive) with statistical power, representing a 5\% chance of incorrectly rejecting a true null hypothesis.
+
+
+\question[22] A pharmaceutical company claims their new drug reduces blood pressure by an average of 10 mmHg. Design a hypothesis test to evaluate this claim. Include: (a) null and alternative hypotheses, (b) what Type I and Type II errors would mean in this context, and (c) which error would be more serious and why.
+
+\textbf{Sample Answer:} H₀: μ = 0 (no reduction), H₁: μ < -10 (reduction of at least 10 mmHg). Type I error: concluding the drug works when it doesn't (patients receive ineffective treatment). Type II error: concluding the drug doesn't work when it does (patients miss beneficial treatment). Type I error is more serious because it could lead to widespread use of an ineffective drug, potentially harming patients and wasting healthcare resources.
+
+\textbf{Grading Rubric:}
+\begin{itemize}
+  \item \textbf{Hypotheses (6 pts)}: Correctly stated null hypothesis (μ = 0 or μ ≥ -10) and alternative hypothesis (μ < -10)
+  \item \textbf{Type I Error (5 pts)}: Clearly explained as rejecting H₀ when true - drug approved when ineffective
+  \item \textbf{Type II Error (5 pts)}: Clearly explained as failing to reject H₀ when false - drug not approved when effective
+  \item \textbf{Error Analysis (6 pts)}: Thoughtful analysis of which error is more serious with valid reasoning about patient safety and resource allocation
+\end{itemize}
+
+
+\end{questions}
+
+\end{document}

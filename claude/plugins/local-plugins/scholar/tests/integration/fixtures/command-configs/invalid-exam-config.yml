@@ -1,0 +1,7 @@
+# Invalid exam config - missing required fields, type errors
+# For testing auto-fix before exam generation
+
+# Missing: week (required)
+title: "Midterm Exam"
+learning_objectives: "Understand statistics"  # Type: should be array
+topics: "Regression Analysis"  # Type: should be array

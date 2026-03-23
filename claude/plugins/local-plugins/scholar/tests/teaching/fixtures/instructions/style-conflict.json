@@ -1,0 +1,22 @@
+{
+  "input": "Use a conversational tone with lots of humor",
+  "commandType": "quiz",
+  "config": {
+    "style": {
+      "tone": "formal"
+    }
+  },
+  "expected": {
+    "content": [],
+    "style": ["Use a conversational tone with lots of humor"],
+    "format": [],
+    "constraints": []
+  },
+  "expectedConflicts": [
+    {
+      "type": "style_override",
+      "severity": "info",
+      "category": "style"
+    }
+  ]
+}

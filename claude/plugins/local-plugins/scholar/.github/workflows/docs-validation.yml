@@ -1,0 +1,195 @@
+name: Documentation Validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '**.md'
+      - 'docs/**'
+      - '.markdownlint.json'
+      - '.github/workflows/docs-validation.yml'
+      - '.github/markdown-link-check-config.json'
+  push:
+    branches: [main, dev]
+    paths:
+      - '**.md'
+      - 'docs/**'
+      - '.markdownlint.json'
+      - '.github/markdown-link-check-config.json'
+
+jobs:
+  markdown-link-check:
+    name: Check Markdown Links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install markdown-link-check
+        run: npm install -g markdown-link-check
+
+      - name: Check links in markdown files
+        run: |
+          # Find all markdown files, excluding BRAINSTORM files and node_modules
+          files=$(find . -name '*.md' \
+            -not -name 'BRAINSTORM*.md' \
+            -not -path './node_modules/*' \
+            -not -path './.git/*' \
+            -type f)
+
+          exit_code=0
+          for file in $files; do
+            echo "Checking: $file"
+            markdown-link-check --verbose --config .github/markdown-link-check-config.json "$file" || exit_code=$?
+          done
+          exit $exit_code
+
+  markdown-lint:
+    name: Lint Markdown Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Lint markdown files
+        uses: DavidAnson/markdownlint-cli2-action@v15
+        with:
+          config: '.markdownlint.json'
+          globs: |
+            **/*.md
+            !node_modules/**
+            !.git/**
+            !BRAINSTORM*.md
+            !docs/specs/BRAINSTORM*.md
+
+  doc-structure-check:
+    name: Check Documentation Structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check required documentation files
+        run: |
+          echo "Checking for required documentation files..."
+          
+          required_files=(
+            "README.md"
+            "CHANGELOG.md"
+            "docs/QUICK-START.md"
+            "docs/DEVELOPER-GUIDE.md"
+            "docs/API-REFERENCE.md"
+            "docs/USER-GUIDE.md"
+            "docs/TEACHING-WORKFLOWS.md"
+          )
+          
+          missing_files=()
+          
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              missing_files+=("$file")
+            fi
+          done
+          
+          if [ ${#missing_files[@]} -gt 0 ]; then
+            echo "❌ Missing required files:"
+            printf '  - %s\n' "${missing_files[@]}"
+            exit 1
+          else
+            echo "✅ All required documentation files present"
+          fi
+
+      - name: Check for broken internal links
+        run: |
+          echo "Checking for common broken link patterns..."
+          
+          # Check for broken relative links to non-existent files
+          broken_links=()
+          
+          while IFS= read -r -d '' file; do
+            # Extract markdown links
+            while IFS= read -r link; do
+              # Extract path from link
+              path=$(echo "$link" | sed 's/.*](\([^)]*\)).*/\1/')
+              
+              # Skip external URLs and anchors
+              if [[ "$path" =~ ^https?:// ]] || [[ "$path" =~ ^# ]]; then
+                continue
+              fi
+              
+              # Resolve relative path
+              dir=$(dirname "$file")
+              target="$dir/$path"
+              
+              # Check if target exists (ignoring anchors)
+              target_file=$(echo "$target" | sed 's/#.*//')
+              
+              if [ ! -e "$target_file" ] && [ ! "$path" = "$target_file" ]; then
+                broken_links+=("$file: $path → $target_file")
+              fi
+            done < <(grep -o '\[.*\](\.\.*/[^)]*\.md[^)]*)' "$file" || true)
+          done < <(find docs -name "*.md" -type f -print0)
+          
+          if [ ${#broken_links[@]} -gt 0 ]; then
+            echo "⚠️  Potential broken internal links found:"
+            printf '  - %s\n' "${broken_links[@]}"
+            # Don't fail, just warn (some may be false positives)
+          else
+            echo "✅ No obvious broken internal links found"
+          fi
+
+  spell-check:
+    name: Spell Check Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install cspell
+        run: npm install -g cspell
+
+      - name: Run spell checker
+        run: |
+          # Create basic cspell config if it doesn't exist
+          if [ ! -f .cspell.json ]; then
+            cat > .cspell.json << 'EOF'
+          {
+            "version": "0.2",
+            "language": "en",
+            "words": [
+              "arxiv",
+              "quarto",
+              "quantile",
+              "biostatistics",
+              "YAML",
+              "CRAN",
+              "BibTeX",
+              "Zotero",
+              "LMS",
+              "QTI",
+              "LaTeX",
+              "ajv",
+              "chokidar",
+              "execFile",
+              "Homebrew",
+              "npm"
+            ],
+            "ignorePaths": [
+              "node_modules/**",
+              ".git/**",
+              "*.json",
+              "*.yaml",
+              "*.yml",
+              "package-lock.json",
+              "BRAINSTORM*.md"
+            ]
+          }
+          EOF
+          fi
+          
+          cspell "docs/**/*.md" "*.md" "!BRAINSTORM*.md" || echo "⚠️ Spell check warnings found (not failing build)"

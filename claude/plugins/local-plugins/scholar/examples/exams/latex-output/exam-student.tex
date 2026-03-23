@@ -1,0 +1,128 @@
+\documentclass[11pt,letterpaper]{exam}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{longtable}
+\geometry{margin=1in}
+
+\begin{document}
+
+\begin{center}
+\LARGE \textbf{Midterm Exam - Introduction to Statistics} \\
+\large Midterm \\
+\normalsize Duration: 75 minutes
+\end{center}
+
+\noindent \textbf{Instructions:} Answer all questions. Show your work for full credit. Use the formula sheet provided. You may use a calculator.
+
+\vspace{0.25in}
+
+\begin{questions}
+
+\question[5] What measure of central tendency is most affected by extreme values (outliers)?
+
+\begin{choices}
+  \choice Mean
+  \choice Median
+  \choice Mode
+  \choice Range
+\end{choices}
+
+
+\question[5] If a dataset has a standard deviation of 0, what can we conclude?
+
+\begin{choices}
+  \choice All values in the dataset are the same
+  \choice The dataset has no outliers
+  \choice The mean equals the median
+  \choice The data is normally distributed
+\end{choices}
+
+
+\question[8] What is the probability of getting at least one head when flipping a fair coin twice?
+
+\begin{choices}
+  \choice 0.25
+  \choice 0.50
+  \choice 0.75
+  \choice 1.00
+\end{choices}
+
+
+\question[8] In hypothesis testing, a Type I error occurs when:
+
+\begin{choices}
+  \choice We reject a true null hypothesis
+  \choice We fail to reject a false null hypothesis
+  \choice We accept a true alternative hypothesis
+  \choice We reject a false alternative hypothesis
+\end{choices}
+
+
+\question[5] Which of the following $p$-values provides the strongest evidence against the null hypothesis?
+
+\begin{choices}
+  \choice $p = 0.001$
+  \choice $p = 0.05$
+  \choice $p = 0.10$
+  \choice $p = 0.50$
+\end{choices}
+
+
+\question[8] If two events $A$ and $B$ are independent, then $P(A \cap B) = $
+
+\begin{choices}
+  \choice $P(A) \times P(B)$
+  \choice $P(A) + P(B)$
+  \choice $P(A) - P(B)$
+  \choice $P(A) / P(B)$
+\end{choices}
+
+
+\question[12] Explain the difference between a population parameter and a sample statistic. Provide one example of each.
+
+\vspace{3in}
+
+
+\question[12] A dataset has a mean of 50 and a standard deviation of 10. Using the empirical rule (68-95-99.7 rule), what percentage of data falls between 40 and 60?
+
+\vspace{3in}
+
+
+\question[15] Explain what a $p$-value represents in the context of hypothesis testing. Why do we typically use $\alpha = 0.05$ as a significance level?
+
+\vspace{3in}
+
+
+\question[22] A pharmaceutical company claims their new drug reduces blood pressure by an average of 10 mmHg. Design a hypothesis test to evaluate this claim. Include: (a) null and alternative hypotheses, (b) what Type I and Type II errors would mean in this context, and (c) which error would be more serious and why.
+
+\textit{Hypotheses stated correctly (6 pts), Type I error explained (5 pts), Type II error explained (5 pts), Analysis of error severity (6 pts)}
+
+\vspace{5in}
+
+
+\newpage
+
+\section*{Formula Sheet}
+
+Sample mean: $\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$
+
+Sample variance: $s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i - \bar{x})^2$
+
+Standard deviation: $s = \sqrt{s^2}$
+
+Z-score: $z = \frac{x - \mu}{\sigma}$
+
+Empirical Rule: 68% within 1 SD, 95% within 2 SD, 99.7% within 3 SD
+
+Probability rules:
+- $P(A \cup B) = P(A) + P(B) - P(A \cap B)$
+- If independent: $P(A \cap B) = P(A) \times P(B)$
+
+Test statistic: $t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}$
+
+\end{questions}
+
+\end{document}

@@ -1,0 +1,13 @@
+# Fixture: Errors that cascade (fixing one reveals another)
+# Expected: Auto-fixer should handle in priority order
+
+week: 1
+title:   "Introduction to Statistics"
+learning_objectives:
+  - id: "LO1"
+    description:  "Understand statistics"
+    cognitive_level: "understand"
+topics: "Statistics"  # Type: should be array
+materials:
+  - title: "Textbook Chapter 1"
+    type: "reading"

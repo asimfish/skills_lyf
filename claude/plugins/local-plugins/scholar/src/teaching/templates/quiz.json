@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Quiz Template",
+  "description": "Schema for quiz content generation - shorter, formative assessments",
+  "type": "object",
+  "required": ["title", "quiz_type", "questions"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Quiz title"
+    },
+    "quiz_type": {
+      "type": "string",
+      "enum": ["reading", "practice", "checkpoint", "pop", "review"],
+      "description": "Type of quiz: reading (comprehension), practice (self-study), checkpoint (progress check), pop (unannounced), review (before exam)"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "minimum": 5,
+      "maximum": 45,
+      "default": 15,
+      "description": "Quiz duration in minutes (typically 10-30)"
+    },
+    "total_points": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total possible points"
+    },
+    "instructions": {
+      "type": "string",
+      "description": "General instructions for the quiz"
+    },
+    "time_limit_per_question": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Optional per-question time limit in seconds (for timed online quizzes)"
+    },
+    "randomize_questions": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to randomize question order"
+    },
+    "randomize_options": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to randomize answer options (for MC questions)"
+    },
+    "show_feedback": {
+      "type": "string",
+      "enum": ["immediate", "after_submit", "after_deadline", "never"],
+      "default": "after_submit",
+      "description": "When to show correct answers and feedback"
+    },
+    "allow_retakes": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether students can retake the quiz"
+    },
+    "max_attempts": {
+      "type": "number",
+      "minimum": 1,
+      "default": 1,
+      "description": "Maximum number of attempts if retakes allowed"
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "text", "points"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^Q[0-9]+$",
+            "description": "Question ID (e.g., Q1, Q2)"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["multiple-choice", "true-false", "short-answer", "fill-blank", "matching", "numerical"],
+            "description": "Question type"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Question text (may include LaTeX)"
+          },
+          "points": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Points awarded for this question"
+          },
+          "options": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string"
+            },
+            "description": "Answer options (for multiple-choice, true-false, matching)"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard"],
+            "default": "medium",
+            "description": "Question difficulty level"
+          },
+          "topic": {
+            "type": "string",
+            "description": "Topic or concept tested"
+          },
+          "learning_objective": {
+            "type": "string",
+            "description": "Learning objective this question assesses"
+          },
+          "explanation": {
+            "type": "string",
+            "description": "Explanation shown with feedback (why answer is correct)"
+          },
+          "hints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional hints (for practice quizzes)"
+          },
+          "partial_credit": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether partial credit is allowed"
+          }
+        },
+        "if": {
+          "properties": {
+            "type": {
+              "enum": ["multiple-choice", "true-false"]
+            }
+          }
+        },
+        "then": {
+          "required": ["options"]
+        }
+      }
+    },
+    "answer_key": {
+      "type": "object",
+      "description": "Answer key mapping question IDs to answers",
+      "patternProperties": {
+        "^Q[0-9]+$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Answer for multiple-choice (A/B/C/D), true-false (True/False), or short-answer"
+            },
+            {
+              "type": "number",
+              "description": "Answer for numerical questions"
+            },
+            {
+              "type": "boolean",
+              "description": "Answer for true-false questions"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Multiple acceptable answers"
+            }
+          ]
+        }
+      }
+    },
+    "topic": {
+      "type": "string",
+      "description": "Main topic this quiz covers"
+    },
+    "week": {
+      "type": "number",
+      "description": "Course week number this quiz belongs to"
+    },
+    "related_reading": {
+      "type": "string",
+      "description": "Textbook chapter or reading assignment this quiz covers"
+    },
+    "learning_objectives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Learning objectives assessed by this quiz"
+    }
+  }
+}

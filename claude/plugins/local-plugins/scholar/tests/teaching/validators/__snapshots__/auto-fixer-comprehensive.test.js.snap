@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Snapshot Tests: CLI Output Formatting snapshot: fix summary report: fix-summary-report 1`] = `
+{
+  "changeTypes": [
+    undefined,
+  ],
+  "changesCount": 1,
+  "success": true,
+}
+`;
+
+exports[`Snapshot Tests: CLI Output Formatting snapshot: multiple fixes report: multiple-fixes-report 1`] = `
+{
+  "preview": {
+    "after": [
+      "week: 1",
+      "title: Test",
+      "topics:",
+    ],
+    "before": [
+      "",
+      "week:   1",
+      "title:    "Test"",
+    ],
+  },
+  "safe": undefined,
+  "totalChanges": 1,
+}
+`;
+
+exports[`Snapshot Tests: CLI Output Formatting snapshot: no changes needed report: no-changes-report 1`] = `
+{
+  "changesCount": 1,
+  "message": "Changes applied",
+  "success": true,
+}
+`;

@@ -1,0 +1,6 @@
+{
+  "input": "",
+  "commandType": "exam",
+  "shouldThrow": true,
+  "errorMessage": "userInstructions must be a non-empty string"
+}

@@ -1,0 +1,13 @@
+# Deprecated lecture config - old v1 field names
+# For testing migration during lecture generation
+
+week: 5
+title: "Advanced Topics in Statistics"
+learning_objectives:
+  - id: "LO1"
+    description: "Master advanced concepts"
+    cognitive_level: "create"
+topics:
+  - name: "Bayesian Statistics"
+    difficulty: "advanced"
+    content_type: "theory"

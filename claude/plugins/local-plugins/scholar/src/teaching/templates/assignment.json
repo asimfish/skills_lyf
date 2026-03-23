@@ -1,0 +1,270 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Assignment Template",
+  "description": "Schema for homework assignment generation - problem sets with solutions",
+  "type": "object",
+  "required": ["title", "assignment_type", "problems"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Assignment title (e.g., 'Homework 3: Linear Regression')"
+    },
+    "assignment_type": {
+      "type": "string",
+      "enum": ["homework", "problem-set", "lab", "project", "worksheet"],
+      "description": "Type: homework (weekly), problem-set (comprehensive), lab (hands-on), project (larger scope), worksheet (in-class)"
+    },
+    "assignment_number": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Assignment number in the sequence"
+    },
+    "due_date": {
+      "type": "string",
+      "description": "Due date (e.g., 'Friday, Week 4 by 11:59 PM')"
+    },
+    "total_points": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total possible points"
+    },
+    "estimated_time": {
+      "type": "string",
+      "description": "Estimated completion time (e.g., '2-3 hours')"
+    },
+    "instructions": {
+      "type": "string",
+      "description": "General instructions and guidelines"
+    },
+    "submission_format": {
+      "type": "string",
+      "enum": ["pdf", "handwritten", "online", "code", "mixed"],
+      "default": "pdf",
+      "description": "How students should submit their work"
+    },
+    "collaboration_policy": {
+      "type": "string",
+      "enum": ["individual", "groups-allowed", "pair-programming"],
+      "default": "individual",
+      "description": "Collaboration rules for this assignment"
+    },
+    "late_policy": {
+      "type": "string",
+      "description": "Late submission policy (e.g., '10% off per day')"
+    },
+    "resources_allowed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Allowed resources (notes, textbook, calculator, etc.)"
+    },
+    "problems": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "points"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^P[0-9]+$",
+            "description": "Problem ID (e.g., P1, P2)"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Problem statement (may include LaTeX)"
+          },
+          "points": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Points for this problem"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["label", "text", "points"],
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "pattern": "^[a-z]$",
+                  "description": "Part label (a, b, c, ...)"
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Part question text"
+                },
+                "points": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Points for this part"
+                },
+                "hint": {
+                  "type": "string",
+                  "description": "Optional hint for this part"
+                }
+              }
+            },
+            "description": "Sub-parts of the problem (a, b, c, ...)"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard", "challenge"],
+            "default": "medium",
+            "description": "Problem difficulty level"
+          },
+          "topic": {
+            "type": "string",
+            "description": "Topic or concept tested"
+          },
+          "learning_objective": {
+            "type": "string",
+            "description": "Learning objective this problem assesses"
+          },
+          "context": {
+            "type": "string",
+            "description": "Real-world context or application (optional)"
+          },
+          "data_provided": {
+            "type": "string",
+            "description": "Description of any data or tables provided"
+          },
+          "hints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Hints students can use if stuck"
+          },
+          "requires_code": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this problem requires coding"
+          },
+          "language": {
+            "type": "string",
+            "enum": ["R", "Python", "Julia", "SAS", "Stata", "any"],
+            "description": "Programming language if code required"
+          }
+        }
+      }
+    },
+    "solutions": {
+      "type": "object",
+      "description": "Solution key with worked steps",
+      "patternProperties": {
+        "^P[0-9]+$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Simple solution text"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "answer": {
+                  "type": "string",
+                  "description": "Final answer"
+                },
+                "steps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Step-by-step solution"
+                },
+                "parts": {
+                  "type": "object",
+                  "patternProperties": {
+                    "^[a-z]$": {
+                      "type": "string",
+                      "description": "Solution for each part"
+                    }
+                  }
+                },
+                "code": {
+                  "type": "string",
+                  "description": "Code solution if applicable"
+                },
+                "notes": {
+                  "type": "string",
+                  "description": "Additional notes for graders"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "rubric": {
+      "type": "object",
+      "description": "Grading rubric with point breakdowns",
+      "patternProperties": {
+        "^P[0-9]+$": {
+          "type": "object",
+          "properties": {
+            "full_credit": {
+              "type": "string",
+              "description": "Criteria for full credit"
+            },
+            "partial_credit": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "points": {
+                    "type": "number"
+                  },
+                  "criteria": {
+                    "type": "string"
+                  }
+                }
+              },
+              "description": "Partial credit tiers"
+            },
+            "common_errors": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Common mistakes and deductions"
+            }
+          }
+        }
+      }
+    },
+    "topic": {
+      "type": "string",
+      "description": "Main topic this assignment covers"
+    },
+    "week": {
+      "type": "number",
+      "description": "Course week number"
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Required knowledge or prior assignments"
+    },
+    "learning_objectives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Learning objectives assessed by this assignment"
+    },
+    "related_readings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Textbook chapters or readings related to this assignment"
+    }
+  }
+}

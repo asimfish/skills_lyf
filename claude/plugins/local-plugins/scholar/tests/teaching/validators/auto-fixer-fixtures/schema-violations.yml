@@ -1,0 +1,19 @@
+# Test fixture: Valid YAML but schema violations
+# - Missing required fields (schema_version, metadata.id)
+# - Invalid enum value
+# - Additional properties not allowed
+
+week: 1
+title: "Introduction to Statistics"
+
+# Missing: schema_version, metadata.id, content.duration
+
+style:
+  teaching_approach: "invalid_approach"  # Should be: interactive, lecture, hybrid
+
+extra_field: "This should not be here"  # Not in schema
+
+content:
+  topics:
+    - "Descriptive Statistics"
+  # Missing: learning_objectives (required)

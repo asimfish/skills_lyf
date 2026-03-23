@@ -1,0 +1,35 @@
+scholar:
+  course_info:
+    code: "STAT-101"
+    title: "Introduction to Statistical Methods"
+    level: undergraduate
+    field: statistics
+    difficulty: beginner
+
+  defaults:
+    exam_format: markdown
+    lecture_format: markdown
+    question_types:
+      - multiple-choice
+      - short-answer
+      - true-false
+      - calculation
+
+  style:
+    tone: formal
+    notation: statistical
+    examples: true
+    structure:
+      content_ratio: 0.70
+      practice_ratio: 0.15
+      minutes_per_slide: 2.5
+      tolerance: 0.20
+      quiz_per_section: 1
+    check:
+      strictness: advisory
+      rules:
+        math_notation: warn
+        code_visibility: warn
+        callout_usage: warn
+        dtslides_classes: warn
+        hand_calculations: warn

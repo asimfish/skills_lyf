@@ -1,0 +1,79 @@
+name: Homebrew Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 2.0.0)'
+        required: true
+        type: string
+      auto_merge:
+        description: 'Auto-merge the formula PR'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  prepare:
+    name: Prepare Release Info
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      sha256: ${{ steps.release.outputs.sha256 }}
+
+    steps:
+      - name: Get version and calculate SHA
+        id: release
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            VERSION="$INPUT_VERSION"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+            VERSION="${VERSION#v}"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          TARBALL_URL="https://github.com/Data-Wise/scholar/archive/refs/tags/v${VERSION}.tar.gz"
+          EMPTY_SHA="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+          # Retry up to 5 times (tarball may not be ready immediately after release)
+          for i in 1 2 3 4 5; do
+            HTTP_CODE=$(curl -sL -w '%{http_code}' -o /tmp/tarball "$TARBALL_URL")
+            if [ "$HTTP_CODE" = "200" ]; then
+              SHA256=$(shasum -a 256 /tmp/tarball | cut -d' ' -f1)
+              if [ -n "$SHA256" ] && [ "$SHA256" != "$EMPTY_SHA" ]; then
+                echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+                echo "Version: $VERSION"
+                echo "SHA256: $SHA256"
+                rm -f /tmp/tarball
+                exit 0
+              fi
+              echo "Attempt $i: Empty tarball, retrying in 10s..."
+            else
+              echo "Attempt $i: HTTP $HTTP_CODE, retrying in 10s..."
+            fi
+            sleep 10
+          done
+          echo "::error::Failed to download tarball after 5 attempts"
+          exit 1
+
+  update-homebrew:
+    name: Update Homebrew Formula
+    needs: prepare
+    uses: Data-Wise/homebrew-tap/.github/workflows/update-formula.yml@main
+    with:
+      formula_name: scholar
+      version: ${{ needs.prepare.outputs.version }}
+      sha256: ${{ needs.prepare.outputs.sha256 }}
+      source_type: github
+      auto_merge: ${{ inputs.auto_merge || github.event_name == 'release' }}
+      command_count: '33'
+      skill_count: '17'
+    secrets:
+      tap_token: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}

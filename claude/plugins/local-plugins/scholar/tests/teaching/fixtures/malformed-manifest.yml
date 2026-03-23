@@ -1,0 +1,8 @@
+schema_version: "99.0"
+semester:
+  total_weeks: -1
+  schedule: "invalid-schedule"
+weeks:
+  - week: "not-a-number"
+    title: ""
+    status: "invalid-status"

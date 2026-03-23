@@ -1,0 +1,34 @@
+---
+title: "Simple MC Quiz"
+---
+
+# Simple MC Quiz
+
+Answer all questions carefully.
+
+## Question 1 [10 pts]
+
+What is the sample mean of the dataset {2, 4, 6}?
+
+a) 3
+b) 4 [x]
+c) 5
+d) 6
+
+## Question 2 [10 pts]
+
+Which measure of central tendency is most affected by outliers?
+
+a) Median
+b) Mode
+c) Mean [x]
+d) Range
+
+## Question 3 [10 pts]
+
+A Type I error occurs when we:
+
+a) Fail to reject a true null hypothesis
+b) Reject a true null hypothesis [x]
+c) Accept a false null hypothesis
+d) Reject a false null hypothesis

@@ -1,0 +1,310 @@
+status: Active
+progress: 100
+next: Start v2.18.0 planning — post-release maintenance or next feature
+target: v2.17.0 — Canvas Enhancements & Bug Fixes (released)
+milestone: v2.17.0 released 2026-03-04 | 33 commands | 3,340 tests
+last_session: 2026-03-04 - v2.17.0 release (Session 88)
+complexity: Low
+risk_level: Low
+dependencies: Claude API, js-yaml, ajv, ajv-keywords, ajv-formats, Quarto, flow-cli, R/Rscript (runtime), examark (Canvas QTI)
+worktree: none
+
+# Session 87 Summary (2026-03-04)
+
+**Commits:** 6 on feature/canvas-enhancements | **PRs:** none yet | **Worktree:** created + ORCHESTRATE committed
+
+**Completed:**
+- Examined examark QTI bugs (rcardinality, MA resprocessing, short answer encoding) and applied all fixes
+- Code review of scholar `/teaching:canvas` and `/teaching:exam` — found 3 bugs in exam.md (static import crash, scoped variable, broken parseArgs) and same static import in quiz.md
+- Deep feature brainstorm (8 questions) for v2.17.0 enhancements
+- Created worktree: `~/.git-worktrees/scholar/canvas-enhancements` on `feature/canvas-enhancements`
+- ORCHESTRATE file written + committed; implementation sessions produced 5 more commits:
+  - fix: repair parseArgs quote handling in exam.md
+  - fix: remove --send from exam.md (static import crash)
+  - fix: remove --send from quiz.md (static import crash)
+  - feat: add pre-flight Canvas validation to /teaching:canvas
+  - feat: use = syntax for multi-answer short answer generation
+- Created BRAINSTORM-scholar-command-enhancements-2026-03-04.md
+- Created docs/specs/SPEC-scholar-canvas-enhancements-2026-03-04.md
+
+**Remaining (Tasks 2.2-2.3):**
+- Tighten exam --format canvas end-to-end pipeline (auto-validate QTI output)
+- Canvas-compatible type enforcement when --format canvas
+
+# Session 86 Summary (2026-02-27)
+
+**Commits:** 28 on dev + main | **PRs:** #98 merged (feature→dev), #99 merged (release), #100 merged (docs) | **Tests:** 3,302 (3,165 Jest + 137 node:test), 136 suites
+
+**Completed (v2.16.0 Full Release + Post-Release):**
+- Merged PR #98 (Canvas QTI feature) after fixing all 7 review issues
+- Filled 4 high-severity doc gaps (API reference, type tables, troubleshooting)
+- v2.16.0 release: version bump, CHANGELOG, release PR #99, GitHub release
+- Homebrew formula verified (v2.16.0 installed via brew)
+- Site update: WHATS-NEW-v2.16.0.md, index.md What's New, REFCARD version + command table, mkdocs.yml nav
+- Docs site deployed (PR #100 merged to main, both deploy workflows green)
+- Ran /insights (322 sessions analyzed), summarized findings
+- Applied 6 insights suggestions to scholar CLAUDE.md (worktree verification, branch guards, POSIX syntax, pre-commit discipline, version grep, proactive doc updates)
+- Applied 3 insights suggestions to global CLAUDE.md (POSIX syntax, worktree list, proactive doc updates)
+- Updated MEMORY.md with release info, link checker flake pattern, site update gotchas
+
+# Session 85 Summary (2026-02-27)
+
+**Commits:** 4 on dev | **PRs:** #98 merged (feature → dev) | **Tests:** 3,302 (3,165 Jest + 137 node:test), 136 suites
+
+**Completed (v2.16.0 Release Prep):**
+- PR #98 code review: identified 7 issues (3 critical, 4 important)
+- Fixed all 7 issues: inverted validateQTI logic, sourceDir validation, cleanup guard, CanvasFormatter routing in 3 commands, parseArgs quoted strings, bare = false-positive in matching pairs
+- Merged PR #98 to dev, cleaned up worktree
+- Filled 4 high-severity doc gaps: TEACHING-COMMANDS-API.md canvas section, API-REFERENCE.md ExamarkFormatter/QMD parser/type detector sections
+- Fixed FIB/Upload missing from type tables in 2 docs
+- Added troubleshooting table to canvas.md
+- Version bump to 2.16.0 across all files (version-sync.js: 16 changes)
+- CHANGELOG: [Unreleased] → [2.16.0] — 2026-02-27
+- Homebrew workflow: command_count 30 → 33
+- Applied 3 CLAUDE.md improvements from insights
+- Created preflight dogfood spec (SPEC-2026-02-27-preflight-dogfood.md)
+
+# Session 84 Summary (2026-02-27)
+
+**Commits:** 10 on feature/examark-qti | **Tests:** 3,302 (3,165 Jest + 137 node:test), 136 suites
+
+**Completed (Canvas QTI Enhancements E1-E7):**
+- E1: Upload→Essay mapping with warning — `file-upload` questions degrade to Essay with prepended note, warnings surfaced via `formatter.warnings`
+- E2: Rich demo fixture — `quiz-mixed.json` covering all 10 question types (MC, MA, TF, Short, Numeric, Essay, Match, FMB, FIB, Upload)
+- E3: Verify tolerance — `_parseExamarkWarnings()` separates expected "No correct answer" warnings from real errors; `validateQTI()` returns `{ valid, errors, warnings }`
+- E4: Section/question group support — H1 sections propagate as `sectionName`, ExamarkFormatter emits H1 headers when section changes (Canvas maps to question groups)
+- E5: Point redistribution — verified already correct (sub-parts divide equally), added 3 regression tests
+- E6: Matching distractors — deferred (examark ignores distractors)
+- E7: Image support — `extractImages()` finds `![alt](path)`, `sourceDir` option threads CWD to examark CLI for image bundling
+- Fixed cache race condition in discovery tests (snapshot cache data in `before()` hook)
+- Updated discovery counts (31→32, 17→18) across 3 test files
+- Documentation: Canvas QTI guide, What's New release notes, mkdocs.yml nav
+
+**New tests:** 45 examark formatter + 7 canvas formatter + 11 QMD parser + 31 e2e canvas QTI + 3 dogfood
+
+# Session 83 Summary (2026-02-23)
+
+**Commits:** 10 on dev + main | **PRs:** #94 merged (feature), #95 merged (release), #96 merged (docs) | **Tests:** 3,092 (2,955 Jest + 137 node:test), 131 suites
+
+**Completed (v2.15.0 Full Release Cycle):**
+- Rebased feature branch onto dev (22 commits, clean rebase)
+- Fixed 4 CI failures: test count (16→17), MD037 lint, merge-base resilience, dead placeholder URL
+- Merged PR #94 (v2.15.0 insights-driven enhancements) to dev
+- Version bump across 15 files via version-sync.js
+- Release PR #95 (dev → main) — all 16 checks green, merged
+- GitHub release: v2.15.0 — Insights-Driven Enhancements
+- All 5 CI workflows green on main (Scholar CI, Docs Deploy, Doc Validation, Homebrew, Pages)
+- Site index updated: added /teaching:preflight, stats table, Previous Releases (PR #96)
+- Cleaned up worktree + feature branch, dev ↔ main fully synced
+
+# Session 82 Summary (2026-02-23)
+
+**Commits:** 3 on dev + 1 on feature branch | **Tests:** unchanged | **Worktree:** feature-v2.15.0-insights-enhancements created
+
+**Completed (v2.15.0 Planning — Insights-Driven Enhancements):**
+- Analyzed 341-session insights report (friction patterns: wrong_approach 59, buggy_code 41)
+- Applied 4 CLAUDE.md improvements from insights suggestions
+- Resolved merge conflicts in solution.md (--validate + --send coexistence)
+- Added R Code Validation section to assignment.md
+- Brainstormed 9 enhancements → saved as formal spec (5 selected for v2.15.0)
+- Interactive spec review: resolved 4 design decisions (preflight namespace, R-only validation, opt-in --validate, himalaya-only email)
+- Created spec: `docs/specs/SPEC-2026-02-23-insights-driven-enhancements.md` (status: approved)
+- Created worktree with ORCHESTRATE file (5 phases, 24 acceptance criteria)
+- Created `docs/internal/insights-2026-02.md` (version-controlled insights reference)
+
+**v2.15.0 Plan (5 phases):**
+1. R Validation Pipeline — shared `validate-pipeline.js`, `--validate` on assignment/lecture/slides (4-6h, HIGH)
+2. `/teaching:preflight` — 6 pre-flight checks, `--fix`, `--json` (4-6h, HIGH)
+3. Dry-Run Standardization — align validate-r with shared utility (~30min, MED)
+4. Email Integration — shared `send-output.js`, `--send` on 4 more commands (3-4h, LOW)
+5. Merge Conflict Guard — CI warning for overlapping command edits (1h, LOW)
+
+# Session 81 Summary (2026-02-16)
+
+**Commits:** See Session 80 (same day, continued)
+
+# Session 80 Summary (2026-02-16)
+
+**Commits:** 2 on dev | **PR:** #90 merged | **Tests:** ~2,960 (2,877 Jest + 137 node:test), ~128 suites
+
+**Completed (PR #90 Review + Merge + Post-Merge):**
+- Applied insights: 2 new CLAUDE.md rules (release checklist, edit safety)
+- 3-agent parallel code review of PR #90 (39 files, +3,907/-37)
+  - Agent 1 (core): Found R code injection via chunk labels — sanitizeLabel() fix
+  - Agent 2 (commands+tests): 99 tests, 12 functions, clean review
+  - Agent 3 (discovery+docs): Found ORCHESTRATE artifact + stale counts
+- Fixed 5 review findings: ORCHESTRATE removal, label sanitization, test counts, doc counts, cache
+- Resolved 3 merge conflicts (README, REFCARD, solution.md — keep both sides)
+- Merged PR #90 to dev, cleaned up worktree + branch
+- Post-merge: fixed discovery test counts (hub excluded from discovery = 30, not 31)
+- Updated CHANGELOG, README, mkdocs.yml site description
+
+# Session 79 Summary (2026-02-16)
+
+**Commits:** 4 on dev | **PR:** #89 merged | **Tests:** 2,906 (2,769 Jest + 137 node:test), 126 suites
+
+**Completed (Solution Email Feature + Doc Sync):**
+- Merged PR #89 (solution --send flag, 3 files, +131/-1) to dev
+- Cleaned up worktree + branch for feature/solution-email-v2
+- Site update pass 1: 10 files (--send docs + test count 2,900→2,906)
+- Site update pass 2: 5 additional files (API ref, command ref, workflows, examples, commands)
+- Version sync: propagated test count to README, CLAUDE.md, tests/README
+- Full doc audit: 15 files updated across 2 commits, all --send references complete
+- Hub command auto-discovers --send via extractFlags() — no manual update needed
+
+# Session 78 Summary (2026-02-16)
+
+**Commits:** 0 (planning only) | **Tests:** unchanged (2,900) | **Worktree:** feature-validate-r created
+
+**Completed (v2.14.0 Planning — validate-r):**
+- Reviewed hub-flag-discovery spec (status: done) and validate-r plan
+- Interactive spec review: 38 design decisions resolved across 8 rounds of questions
+- Topics covered: fix mode, subcategory, recursion, cascading failures, setup flag, inline R, auto-loading, lecture matching, context size, demo update, config layout, fix retries, batch output, JSON output, pkg format, chunk timeout, setup path, pre-commit, empty dir, chunk options, working dir, unnamed chunks, linting, JSON shape, fix comments, file types, summary style, plot output, exit codes, quiet mode
+- Updated plan with: acceptance criteria, integration checklist (5 mandatory items), dependencies table, test strategy (~54 tests, 12 describe blocks), affected commands table (8 commands), documentation plan (1 new tutorial + 10 updates), config schema additions (data_dir, r_packages)
+- Added lecture/lab context gathering to solution command design (summary + R chunks extraction)
+- Created worktree: `~/.git-worktrees/scholar/feature-validate-r`
+- Created ORCHESTRATE file: 9 phases, 24 acceptance criteria
+
+**Plan highlights (v2.14.0):**
+- New command: `/teaching:validate-r` (11 flags, 12 module exports)
+- Solution enhancement: lecture/lab context reading + data dir loading
+- Config additions: `scholar.data_dir`, `scholar.r_packages`
+- Integration: 5 discovery points, 3 affected commands, 12 doc updates
+- Exit codes: 0=pass, 1=failures, 2=lint-only (CI-friendly)
+
+# Session 77 Summary (2026-02-16)
+
+**Commits:** 14 on dev + main | **PR:** #84 merged (release) | **Tests:** 2,900 (2,763 Jest + 137 node:test), 126 suites
+
+**Completed (v2.13.0 Full Release Cycle):**
+- Merged /teaching:solution PR #83 to dev (code review + 4 fixes)
+- Post-merge: command count sync (29→30), CI, mkdocs, discovery integration
+- Docs: What's New v2.13.0, site index, learning path sync, stale reference fixes
+- Version bump: package.json, plugin.json, mkdocs.yml → 2.13.0
+- Release PR #84 (dev → main) merged
+- GitHub release: v2.13.0 — Solution Key Generator
+- CI fixes: homebrew-release command_count 28→30, CHANGELOG MD053 lint
+- MEMORY.md updated, dev ↔ origin/dev fully synced
+
+# Session 76 Summary (2026-02-16)
+
+**Commits:** 4 on feature/solution-command + merge to dev | **PR:** #83 merged | **Tests:** 2,900 (2,763 Jest + 137 node:test), 90+36 suites
+
+**Completed (PR Review + Fixes + Merge):**
+- Code review of PR #83 (/teaching:solution, 22 files, +1,700/-70) — 5 findings
+- Fixed 4 review issues: ci.yml count 29→30 + solution.md check, mkdocs.yml counts, generateOutputPath edge case, stale test description
+- All pre-merge checks passed: 2,900 tests, version consistency, no merge conflicts
+- Merged PR #83 to dev, cleaned up worktree + branch
+
+**New: /teaching:solution command (15th teaching command):**
+- Generates standalone solution keys from .qmd or .json assignment files
+- QMD parser recognizes 5 heading patterns (Problem, Exercise, Question, N., **Problem**)
+- Formats: md, qmd, json | Options: --include-rubric, --include-code, --no-code, -i, --dry-run
+- Default output to solutions/ directory (gitignored convention)
+- 34 new tests in solution-generator.test.js
+- 9th AI-capable command (supports -i/--instructions)
+
+# Session 75 Summary (2026-02-13)
+
+**Commits:** 16 across dev + main | **PRs:** #80, #81, #82 merged | **Tests:** 2,873 (2,736 Jest + 137 node:test), 125 suites
+
+**Completed (Full v2.12.0 Release Cycle):**
+- Code review of PR #80 (hub flag discovery, 24 files, +1,781/-55) — 3 findings fixed
+- Merged PR #80 to dev, cleaned up worktree
+- Post-merge docs: CLAUDE.md, .STATUS, CHANGELOG.md, MEMORY.md
+- Site update: docs/index.md What's New v2.12.0, hub description, release links
+- Markdown lint: fixed 6 errors (1 orphaned code fence, 5 blockquote indentation)
+- Version bump: package.json, plugin.json, mkdocs.yml → 2.12.0
+- Version sync: 14 files updated via `version-sync.js`
+- All tests pass: 2,736 Jest + 137 node:test
+- Release PR #81 (dev → main) merged
+- GitHub release: v2.12.0 — Hub Flag Discovery
+- CI fix: MD038 space in code span (hub.md), link checker race condition (ignore release tags)
+- PR #82 merged, all 5 CI workflows green on main
+
+# Session 74 Summary (2026-02-13)
+
+**Commits:** 1 on feature/hub-flag-discovery (review fixes) + PR #80 merged → dev | **Tests:** 2,858 (2,736 Jest + 137 node:test), 122 suites
+
+**Completed (PR Review + Merge + Docs Update):**
+- Code review of PR #80 (hub flag discovery, 24 files, +1,781/-55)
+- Fixed 3 review issues: extracted `hasInstructionsFlag()` helper, added takesValue regex comment, reverted API-REFERENCE version to 2.11.0
+- Merged PR #80 to dev (squash merge), cleaned up worktree + branch
+- Post-merge docs update: CLAUDE.md, .STATUS, CHANGELOG.md, MEMORY.md
+
+**v2.12.0 Hub Flag Discovery (merged to dev):**
+- `extractFlags()` parses **Options:** sections from all 28 command .md files
+- `flags[]` and `hasInstructions` added to command metadata
+- Cache bumped to v2 with auto-invalidation of v1 caches
+- Hub Layer 1: `[AI]` markers on AI-capable commands
+- Hub Layer 2: `(N options — see details)` hints
+- Hub Layer 3: Full Options display with dotted leaders
+- Smart-help: teaching tips mention `-i` flag
+- 75 new tests: extractFlags (27), E2E (17), dogfooding (31)
+- 8 teaching .md files standardized: `-i` first, `--instructions` second
+
+# Session 73 Summary (2026-02-13)
+
+**Commits:** 3 on dev + release PR #79 merged to main | **Tests:** 2,783 (2,736 Jest + 47 node:test), 103 suites
+
+**Completed (Documentation Gap Analysis + v2.12.0 Planning):**
+- Ran 3-agent parallel gap analysis for v2.11.0 custom instructions docs/help coverage
+- Created `docs/WHATS-NEW-v2.11.0.md` — full release notes with architecture, approval workflow, stats
+- Created `docs/tutorials/teaching/custom-instructions.md` — 6-step, 20-minute tutorial for `-i` flag
+- Updated mkdocs.yml nav, docs/index.md release links, learning-path.md (Mermaid diagram + tables)
+- Fixed stale suite_count: 89 → 103 in mkdocs.yml (was Jest-only, now includes 14 node:test suites)
+- Fixed MEMORY.md test counts to match actual (2,783 total / 103 suites)
+- Created and merged release PR #79 to main (docs-only, no version bump)
+- Deep brainstorm (8 questions) for hub flag discovery enhancement → v2.12.0
+- Created spec: `docs/specs/SPEC-2026-02-13-hub-flag-discovery.md` (extractFlags(), cache v2, Layer 1/2/3, smart-help)
+- Created worktree: `~/.git-worktrees/scholar/hub-flag-discovery` (feature/hub-flag-discovery)
+
+**v2.12.0 Spec Highlights (4 phases):**
+1. Standardize Options format in 14 teaching .md files
+2. Add `extractFlags()` to discovery engine, bump CACHE_VERSION to 2
+3. Hub Layer 1 `[AI]` markers, Layer 2 flag count hints, Layer 3 full Options display
+4. Smart-help tips for `-i` flag
+
+# Session 71 Summary (2026-02-12)
+
+**Commits:** 1 on feature/custom-instructions (security fixes) | **PR:** #76 merged → dev | **Tests:** 2,725 (2,678 Jest + 47 node:test)
+
+**Completed (PR Review + Security Fixes):**
+- Orchestrated 4-agent parallel code review of PR #76 (42 files, 4,114 additions)
+- Agent 1 (core): Found 2 critical security issues — prompt injection in categorizer, path traversal in loadFromFile
+- Agent 2 (commands): Reviewed 8 command definitions + 6 generator changes
+- Agent 3 (tests): Reviewed 102 tests, identified fragile source-code-string-matching pattern
+- Agent 4 (docs): Reviewed version sync, CHANGELOG, planning artifacts
+- Fixed prompt injection: added XML-style delimiters to categorizer.md
+- Fixed path traversal: added boundary check for relative paths in loadFromFile()
+- Added 3 security tests for path traversal scenarios
+- Removed planning artifacts (ORCHESTRATE + PROPOSAL) from PR
+- All 105 tests pass (69 unit + 36 E2E)
+- Merged PR #76 to dev, cleaned up worktree + branch
+
+# Release History
+
+| Version | Date | Highlights |
+|---------|------|-----------|
+| v2.17.0 | 2026-03-04 | Canvas enhancements: pre-flight validation, shared canvas-preflight.js helper, exam --format canvas, SCHOLAR_VERSION fix, 3,340 tests |
+| v2.16.0 | 2026-02-27 | Canvas QTI pipeline: /teaching:canvas, QMD parser, 10 question types, image bundling, examark integration, 3,302 tests |
+| v2.15.0 | 2026-02-23 | Insights-driven enhancements: /teaching:preflight, validate-pipeline, send-output, CI merge-conflict guard, 3,092 tests |
+| v2.14.0 | 2026-02-16 | R code validator: /teaching:validate-r, 11 flags, sanitizeLabel security fix, 3,014 tests |
+| v2.13.0 | 2026-02-16 | Solution key generator: /teaching:solution command, QMD parser, --send email, md/qmd/json formats, 2,906 tests |
+| v2.12.0 | 2026-02-13 | Hub flag discovery: extractFlags(), cache v2, [AI] markers, Layer 1/2/3, smart-help, 2,873 tests |
+| v2.11.0 | 2026-02-12 | Custom instructions: --instructions/-i flag, InstructionMerger, AI categorization, 2,725 tests |
+| v2.10.0 | 2026-02-10 | Maintenance sprint: security fixes, ESLint 10, Jest 30, glob 13, Node >=20.19, 2,678 tests |
+| v2.9.0 | 2026-02-09 | MkDocs macros + version-sync: two-layer automation, CI version checks, /teaching:config, 2,630 tests |
+| v2.8.0 | 2026-02-09 | Slide revision & validation: --revise, --check, 7-dimension auto-analysis, 2,252 tests |
+| v2.7.0 | 2026-02-05 | Scholar Hub: discovery engine, smart help, /scholar:hub command, 2,071 tests |
+| v2.6.3 | 2026-02-04 | Doc sync, flaky test fix, site deploy, 2,024 tests |
+| v2.6.2 | 2026-02-03 | CI fixes, doc cleanup, -25,023 lines of planning artifacts |
+| v2.6.1 | 2026-02-03 | Version alignment, badge updates across 27 doc files |
+| v2.6.0 | 2026-02-02 | Phase 2 config-flow integration, 220+ doc pages, 2,016 tests |
+| v2.5.2 | 2026-01-29 | Security testing guide, 80 new tests, 14 assertion fixes |
+| v2.5.0 | 2026-01-29 | Weekly lecture production (6 features), 1,659 tests |
+| v2.4.0 | 2026-01-28 | Prompt discovery system (Issue #29), 207 prompt tests |
+| v2.3.1 | 2026-01-28 | Documentation fixes, markdown linting |
+| v2.3.0 | 2026-01-15 | /teaching:migrate, integration tests, 1,391 tests |
+| v2.2.0 | 2026-01-15 | Config integration, sync engine, validation tools |
+| v2.1.0 | 2026-01-15 | Lecture command, 4-layer style system, 1,024 tests |

@@ -1,0 +1,7 @@
+# Fixture: Pure type mismatches (string instead of array, etc.)
+# Expected: Auto-fixer M1.2 should detect and propose conversions
+
+week: 1
+title: "Introduction to Statistics"
+learning_objectives: "Understand statistics"  # Should be array
+topics: "Descriptive Statistics"  # Should be array

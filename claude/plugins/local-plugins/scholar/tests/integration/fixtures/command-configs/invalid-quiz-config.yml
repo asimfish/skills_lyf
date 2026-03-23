@@ -1,0 +1,12 @@
+# Invalid quiz config - type errors in question types
+# For testing auto-fix before quiz generation
+
+week: 3
+title:   "Weekly Quiz 3"
+learning_objectives:
+  - id: "LO1"
+    description: "Apply regression"
+    cognitive_level: "apply"
+topics:
+  - name: "Linear Regression"
+question_types: "multiple-choice"  # Type: should be array

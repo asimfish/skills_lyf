@@ -1,0 +1,7 @@
+schema_version: "1.0"
+semester:
+  total_weeks: 5
+  schedule: "weekly"
+weeks:
+  - week: 1
+    title: "Introduction"

@@ -1,0 +1,373 @@
+---
+title: "Descriptive Statistics"
+subtitle: "Summarizing and visualizing data"
+author: "STAT-101"
+date: "2026-01-20"
+format: revealjs
+# --- Scholar Generation Metadata ---
+# generated: 2026-01-20T10:00:00Z
+# scholar_version: 2.8.0
+# command: teaching:slides
+# ---
+---
+
+# Descriptive Statistics {.section-slide}
+
+## Learning Objectives
+
+By the end of this lecture, students will be able to:
+
+1. Distinguish between categorical and quantitative variables
+2. Calculate and interpret measures of central tendency
+3. Calculate measures of variability
+4. Select appropriate graphical displays
+
+## Types of Data {.definition-slide}
+
+**Categorical variables** classify observations into groups.
+
+**Quantitative variables** represent numerical measurements.
+
+::: {.callout-important}
+Always identify variable type before choosing a summary measure.
+:::
+
+- Nominal: categories with no order (eye color, gender)
+- Ordinal: categories with order (satisfaction ratings)
+- Interval: numeric with meaningful differences (temperature in F)
+- Ratio: numeric with true zero (weight, height)
+
+## Example: Variable Classification {.example-slide}
+
+Consider a dataset of student records:
+
+| Variable | Type | Level |
+|----------|------|-------|
+| Major | Categorical | Nominal |
+| Year | Categorical | Ordinal |
+| GPA | Quantitative | Ratio |
+| SAT Score | Quantitative | Interval |
+
+## Measures of Central Tendency
+
+The three main measures of center:
+
+**Mean:** $\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$
+
+The arithmetic average of all values.
+
+**Median:** The middle value when data is sorted.
+
+**Mode:** The most frequently occurring value.
+
+When to use each:
+- Mean: symmetric distributions, no outliers
+- Median: skewed distributions, ordinal data
+- Mode: categorical data, finding peaks
+
+## Worked Example: Central Tendency {.example-slide}
+
+Dataset: exam scores for 7 students
+
+$$\{68, 72, 75, 78, 82, 85, 95\}$$
+
+**Mean:** $\bar{x} = \frac{68+72+75+78+82+85+95}{7} = \frac{555}{7} = 79.3$
+
+**Median:** The 4th value = $78$
+
+**Mode:** No repeated values (no mode)
+
+The mean is slightly pulled up by the 95 score, illustrating sensitivity to outliers.
+
+## Computing in R {.small-slide}
+
+```{r}
+#| echo: true
+scores <- c(68, 72, 75, 78, 82, 85, 95)
+mean(scores)
+median(scores)
+```
+
+The mean (79.3) exceeds the median (78), suggesting slight right skew in the distribution. This tells us that the higher scores pull the average upward.
+
+## When Mean Fails: Outlier Sensitivity
+
+Consider two datasets:
+
+- Dataset A: $\{10, 12, 13, 14, 15\}$ → $\bar{x} = 12.8$
+- Dataset B: $\{10, 12, 13, 14, 100\}$ → $\bar{x} = 29.8$
+
+One outlier (100) nearly tripled the mean. The median is barely affected:
+- Dataset A median: 13
+- Dataset B median: 13
+
+This is why we say the median is **robust** to outliers.
+
+## Practice: Identifying Skewness {.practice-slide}
+
+For each histogram shape, predict which is larger: mean or median.
+
+1. Right-skewed distribution
+2. Left-skewed distribution
+3. Symmetric distribution
+4. Bimodal distribution
+
+## Quiz: Central Tendency Selection {.quiz-question}
+
+A real estate agent reports average home prices. Which measure should she use?
+
+- [ ] Mean (arithmetic average)
+- [x] Median (middle value) {.correct}
+- [ ] Mode (most common price)
+- [ ] Geometric mean {.incorrect}
+
+## Definition: Robust Statistics {.definition-slide}
+
+A **robust statistic** is one that is not heavily influenced by outliers or violations of distributional assumptions.
+
+::: {.callout-important}
+The median and IQR are robust; the mean and standard deviation are not.
+:::
+
+## Example: Five-Number Summary {.example-slide}
+
+Dataset: $\{2, 5, 7, 8, 12, 14, 15, 18, 22\}$
+
+| Statistic | Value |
+|-----------|-------|
+| Minimum | 2 |
+| Q1 | 6 |
+| Median | 12 |
+| Q3 | 16.5 |
+| Maximum | 22 |
+
+IQR = Q3 - Q1 = 16.5 - 6 = 10.5
+
+## Measures of Variability
+
+Understanding spread in data:
+
+**Range:** $\text{Range} = x_{\max} - x_{\min}$
+
+**Interquartile Range (IQR):** $\text{IQR} = Q_3 - Q_1$
+
+**Variance:** $s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i - \bar{x})^2$
+
+**Standard Deviation:** $s = \sqrt{s^2}$
+
+The standard deviation is in the same units as the data, making it more interpretable than variance.
+
+## Dense Slide: All Formulas Reference
+
+Range: $\text{Range} = x_{\max} - x_{\min}$
+IQR: $\text{IQR} = Q_3 - Q_1$
+Sample variance: $s^2 = \frac{1}{n-1}\sum(x_i - \bar{x})^2$
+Population variance: $\sigma^2 = \frac{1}{N}\sum(x_i - \mu)^2$
+Sample std dev: $s = \sqrt{s^2}$
+Population std dev: $\sigma = \sqrt{\sigma^2}$
+Coefficient of variation: $CV = \frac{s}{\bar{x}} \times 100\%$
+Z-score: $z = \frac{x - \bar{x}}{s}$
+Chebyshev: at least $1 - \frac{1}{k^2}$ within $k$ std devs
+Empirical rule: 68-95-99.7 for normal distributions
+Skewness: $g_1 = \frac{n}{(n-1)(n-2)}\sum\left(\frac{x_i - \bar{x}}{s}\right)^3$
+Kurtosis: $g_2 = \frac{n(n+1)}{(n-1)(n-2)(n-3)}\sum\left(\frac{x_i - \bar{x}}{s}\right)^4 - \frac{3(n-1)^2}{(n-2)(n-3)}$
+Five number summary: min, Q1, median, Q3, max
+Percentile rank: $\frac{\text{count below}}{n} \times 100$
+Mean absolute deviation: $\text{MAD} = \frac{1}{n}\sum|x_i - \bar{x}|$
+Weighted mean: $\bar{x}_w = \frac{\sum w_i x_i}{\sum w_i}$
+Geometric mean: $\bar{x}_g = \left(\prod x_i\right)^{1/n}$
+Harmonic mean: $\bar{x}_h = \frac{n}{\sum \frac{1}{x_i}}$
+Trimmed mean: remove top/bottom $k\%$, then average
+Winsorized mean: replace extremes with boundary values
+Midrange: $\frac{x_{\max} + x_{\min}}{2}$
+Deciles: divide data into 10 equal parts
+Stem-and-leaf display: visual frequency layout
+
+## Worked Example: Computing Variance Step-by-Step {.example-slide}
+
+Dataset: $\{4, 7, 8, 10, 11\}$
+
+Step 1: $\bar{x} = \frac{4+7+8+10+11}{5} = 8$
+
+Step 2: Deviations: $\{-4, -1, 0, 2, 3\}$
+
+Step 3: Squared deviations: $\{16, 1, 0, 4, 9\}$
+
+Step 4: $s^2 = \frac{16+1+0+4+9}{5-1} = \frac{30}{4} = 7.5$
+
+Step 5: $s = \sqrt{7.5} \approx 2.74$
+
+## Quiz: Variability Concepts {.quiz-question}
+
+Which measure of spread is most affected by outliers?
+
+- [ ] IQR
+- [x] Standard deviation {.correct}
+- [ ] Median absolute deviation
+- [ ] Range {.incorrect}
+
+## Practice: Comparing Distributions {.practice-slide}
+
+Two classes took the same exam:
+
+- Class A: mean = 75, SD = 5
+- Class B: mean = 75, SD = 15
+
+1. Which class had more consistent scores?
+2. Using the empirical rule, what range contains ~95% of Class A?
+3. What range contains ~95% of Class B?
+
+## R Output: Variability
+
+```{r}
+#| echo: true
+scores <- c(68, 72, 75, 78, 82, 85, 95)
+var(scores)
+sd(scores)
+IQR(scores)
+```
+
+# Data Visualization {.section-slide}
+
+## Choosing the Right Plot
+
+A sparse placeholder slide.
+
+## Histograms and Boxplots
+
+**Histogram:** displays frequency distribution of quantitative data.
+
+Key features to identify:
+- Shape (symmetric, skewed, bimodal)
+- Center (where the peak is)
+- Spread (how wide the distribution is)
+- Outliers (unusual observations)
+
+**Boxplot:** displays five-number summary graphically.
+
+Components: min, Q1, median, Q3, max, and outlier whiskers.
+
+## Example: Creating Histograms in R {.example-slide}
+
+```{r}
+#| echo: true
+scores <- c(68, 72, 75, 78, 82, 85, 95)
+hist(scores, breaks = 5, main = "Exam Score Distribution",
+     xlab = "Score", col = "steelblue")
+```
+
+The histogram reveals the shape of the distribution at a glance.
+
+## Scatterplots and Correlation
+
+**Scatterplots** display the relationship between two quantitative variables.
+
+Key patterns to identify:
+- Direction (positive, negative, none)
+- Form (linear, curved)
+- Strength (tight cluster vs. scattered)
+- Outliers (points far from pattern)
+
+## Example: Interpreting Scatter Patterns {.example-slide}
+
+```{r}
+#| echo: true
+plot(mtcars$wt, mtcars$mpg,
+     xlab = "Weight (1000 lbs)", ylab = "MPG",
+     main = "Car Weight vs. Fuel Efficiency")
+```
+
+The negative linear trend shows heavier cars tend to have lower fuel efficiency.
+
+## Bar Charts vs. Pie Charts
+
+For categorical data:
+
+**Bar charts** (preferred):
+- Easy to compare heights
+- Works for many categories
+- Can show groups side-by-side
+
+**Pie charts** (use sparingly):
+- Hard to compare similar-sized slices
+- Limited to few categories
+- Often misleading
+
+## Practice: Graph Selection {.practice-slide}
+
+For each scenario, choose the best graph type:
+
+1. Distribution of exam scores → ?
+2. Relationship between study hours and grades → ?
+3. Breakdown of student majors → ?
+4. Change in enrollment over 10 years → ?
+5. Comparing grade distributions across 3 sections → ?
+
+## Definition: Distribution Shape {.definition-slide}
+
+The **shape** of a distribution describes its symmetry, modality, and tail behavior.
+
+- **Symmetric**: mean ≈ median
+- **Right-skewed**: mean > median (long right tail)
+- **Left-skewed**: mean < median (long left tail)
+- **Bimodal**: two distinct peaks
+
+## Quiz: Variable Types {.quiz-question}
+
+Which measure of central tendency is most appropriate for skewed data?
+
+- [ ] Mean
+- [x] Median {.correct}
+- [ ] Mode
+- [ ] Range {.incorrect}
+
+## Practice: Calculate Measures {.practice-slide}
+
+Given the dataset: $\{12, 15, 18, 18, 20, 22, 25, 30\}$
+
+1. Calculate the mean
+2. Find the median
+3. Identify the mode
+4. Compute the IQR
+5. Calculate the standard deviation
+
+## Quiz: Interpretation {.quiz-question}
+
+A dataset has mean = 50 and standard deviation = 10. According to the empirical rule, approximately what percentage falls between 30 and 70?
+
+- [ ] 68%
+- [x] 95% {.correct}
+- [ ] 99.7%
+- [ ] 50%
+
+## Definition: Standard Deviation {.definition-slide}
+
+The standard deviation measures the average distance of data points from the mean.
+
+$$s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i - \bar{x})^2}$$
+
+A larger standard deviation indicates greater spread in the data.
+
+## Theorem: Chebyshev's Inequality {.theorem-slide}
+
+For any dataset and any $k > 1$:
+
+At least $1 - \frac{1}{k^2}$ of the data falls within $k$ standard deviations of the mean.
+
+$$P(|X - \mu| < k\sigma) \geq 1 - \frac{1}{k^2}$$
+
+This holds for **any** distribution, not just normal distributions.
+
+## Summary {.summary-slide}
+
+Key takeaways:
+
+1. **Variable types** determine appropriate summary measures
+2. **Mean, median, mode** measure center differently
+3. **Standard deviation** is the most useful spread measure
+4. **Histograms** show distribution shape; **boxplots** show five-number summary
+5. Choose visualization based on variable type and research question
+
+### Next Lecture
+- Probability Fundamentals
+- Sample spaces and events

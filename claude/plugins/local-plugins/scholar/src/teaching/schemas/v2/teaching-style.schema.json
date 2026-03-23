@@ -1,0 +1,217 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://scholar.anthropic.com/schemas/v2/teaching-style.schema.json",
+  "title": "Teaching Style Schema",
+  "description": "Schema for instructor teaching style profiles with global defaults and course-specific overrides",
+  "type": "object",
+  "properties": {
+    "teaching_style": {
+      "type": "object",
+      "description": "Teaching style configuration",
+      "properties": {
+        "pedagogical_approach": {
+          "$ref": "#/definitions/pedagogicalApproach"
+        },
+        "explanation_style": {
+          "$ref": "#/definitions/explanationStyle"
+        },
+        "assessment_philosophy": {
+          "$ref": "#/definitions/assessmentPhilosophy"
+        },
+        "student_interaction": {
+          "$ref": "#/definitions/studentInteraction"
+        },
+        "content_preferences": {
+          "$ref": "#/definitions/contentPreferences"
+        },
+        "course_specific_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Course-specific notes and reminders"
+        },
+        "command_overrides": {
+          "type": "object",
+          "description": "Command-specific style overrides (Layer 3)",
+          "properties": {
+            "exam": {
+              "$ref": "#/definitions/commandOverride"
+            },
+            "quiz": {
+              "$ref": "#/definitions/commandOverride"
+            },
+            "lecture": {
+              "$ref": "#/definitions/commandOverride"
+            },
+            "assignment": {
+              "$ref": "#/definitions/commandOverride"
+            },
+            "slides": {
+              "$ref": "#/definitions/commandOverride"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "pedagogicalApproach": {
+      "type": "object",
+      "description": "Overall pedagogical philosophy",
+      "properties": {
+        "primary": {
+          "type": "string",
+          "enum": ["active-learning", "lecture", "flipped", "socratic", "inquiry-based", "project-based"],
+          "description": "Primary teaching approach"
+        },
+        "secondary": {
+          "type": "string",
+          "enum": ["active-learning", "lecture", "flipped", "socratic", "inquiry-based", "project-based"],
+          "description": "Secondary teaching approach"
+        },
+        "class_structure": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Typical class structure segments"
+        }
+      }
+    },
+    "explanationStyle": {
+      "type": "object",
+      "description": "How concepts are explained",
+      "properties": {
+        "formality": {
+          "type": "string",
+          "enum": ["formal", "conversational", "balanced"],
+          "description": "Writing/speaking tone"
+        },
+        "proof_style": {
+          "type": "string",
+          "enum": ["proof-first", "intuition-first", "both-parallel"],
+          "description": "Order of proofs vs intuition"
+        },
+        "notation_preference": {
+          "type": "string",
+          "enum": ["standard", "custom"],
+          "description": "Mathematical notation style"
+        },
+        "example_depth": {
+          "type": "string",
+          "enum": ["single-detailed", "multiple-varied", "minimal"],
+          "description": "How many examples to include"
+        },
+        "analogies": {
+          "type": "string",
+          "enum": ["frequent", "moderate", "rare"],
+          "description": "How often to use analogies"
+        }
+      }
+    },
+    "assessmentPhilosophy": {
+      "type": "object",
+      "description": "Assessment approach",
+      "properties": {
+        "primary_focus": {
+          "type": "string",
+          "enum": ["formative", "summative", "balanced"],
+          "description": "Primary assessment focus"
+        },
+        "feedback_style": {
+          "type": "string",
+          "enum": ["descriptive", "rubric-based", "minimal"],
+          "description": "How feedback is given"
+        },
+        "revision_policy": {
+          "type": "string",
+          "enum": ["encouraged", "allowed", "not-allowed"],
+          "description": "Whether students can revise work"
+        },
+        "partial_credit": {
+          "type": "boolean",
+          "description": "Whether partial credit is given"
+        }
+      }
+    },
+    "studentInteraction": {
+      "type": "object",
+      "description": "Classroom interaction style",
+      "properties": {
+        "questioning": {
+          "type": "string",
+          "enum": ["socratic", "cold-call", "volunteer", "think-pair-share"],
+          "description": "How questions are asked"
+        },
+        "group_work": {
+          "type": "string",
+          "enum": ["structured", "open-ended", "minimal"],
+          "description": "Group work format"
+        },
+        "discussion_format": {
+          "type": "string",
+          "enum": ["whole-class", "small-group", "one-on-one"],
+          "description": "Discussion format"
+        }
+      }
+    },
+    "contentPreferences": {
+      "type": "object",
+      "description": "Content and topic preferences",
+      "properties": {
+        "real_world_examples": {
+          "type": "string",
+          "enum": ["frequent", "moderate", "theoretical-focus"],
+          "description": "How often to use real-world examples"
+        },
+        "historical_context": {
+          "type": "string",
+          "enum": ["frequent", "moderate", "minimal"],
+          "description": "How much historical context to include"
+        },
+        "computational_tools": {
+          "type": "string",
+          "enum": ["integrated", "separate-labs", "minimal", "R-heavy", "Python-heavy"],
+          "description": "How computational tools are used"
+        },
+        "interdisciplinary_connections": {
+          "type": "string",
+          "description": "Related fields to connect with (e.g., 'statistics-economics')"
+        }
+      }
+    },
+    "commandOverride": {
+      "type": "object",
+      "description": "Style overrides for specific Scholar commands",
+      "properties": {
+        "formality": {
+          "type": "string",
+          "enum": ["formal", "conversational", "balanced"]
+        },
+        "proof_style": {
+          "type": "string",
+          "enum": ["proof-first", "intuition-first", "both-parallel"]
+        },
+        "example_depth": {
+          "type": "string",
+          "enum": ["single-detailed", "multiple-varied", "minimal"]
+        },
+        "difficulty_adjustment": {
+          "type": "string",
+          "enum": ["easier", "same", "harder"],
+          "description": "Adjust difficulty relative to course default"
+        },
+        "time_pressure": {
+          "type": "string",
+          "enum": ["relaxed", "moderate", "strict"],
+          "description": "Time pressure for timed assessments"
+        },
+        "custom_instructions": {
+          "type": "string",
+          "description": "Additional instructions for this command type"
+        }
+      }
+    }
+  }
+}

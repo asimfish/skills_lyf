@@ -1,0 +1,480 @@
+# Scholar Config Validation Workflow
+#
+# Validates YAML configurations (lesson plans, teaching style) against schemas
+# and ensures YAML/JSON synchronization is up to date.
+#
+# Usage:
+#   This workflow can be used in two ways:
+#   1. Copy to your course repository's .github/workflows/ directory
+#   2. Reference as a reusable workflow (see docs/github-actions-setup.md)
+#
+# Requirements:
+#   - Node.js 18+
+#   - Scholar plugin installed (npm install @data-wise/scholar)
+#
+# Author: Data-Wise
+# Repository: https://github.com/Data-Wise/scholar
+
+name: Scholar Config Validation
+
+on:
+  push:
+    branches: ['*']
+    paths:
+      - 'content/lesson-plans/**/*.yml'
+      - 'content/lesson-plans/**/*.yaml'
+      - '.claude/**/*.yml'
+      - '.claude/**/*.yaml'
+      - '.flow/teach-config.yml'
+      - '.flow/teaching-style.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'content/lesson-plans/**/*.yml'
+      - 'content/lesson-plans/**/*.yaml'
+      - '.claude/**/*.yml'
+      - '.claude/**/*.yaml'
+      - '.flow/teach-config.yml'
+      - '.flow/teaching-style.yml'
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force re-sync all files (ignore cache)'
+        required: false
+        default: 'false'
+        type: boolean
+      debug:
+        description: 'Enable debug logging'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ============================================================================
+  # Job 1: Validate YAML Configuration Files
+  # ============================================================================
+  validate-configs:
+    name: Validate YAML Configs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install dependencies
+        run: |
+          # Check if this is a course repository (no package.json) or Scholar plugin
+          if [ -f package.json ]; then
+            npm ci
+          else
+            # For course repos, install scholar globally
+            npm install -g @data-wise/scholar || npm install -g js-yaml ajv
+          fi
+
+      - name: Validate YAML syntax
+        run: |
+          echo "Validating YAML syntax..."
+
+          # Find all YAML files in config locations
+          YAML_FILES=$(find . \( -path './content/lesson-plans/*.yml' -o \
+                                  -path './content/lesson-plans/*.yaml' -o \
+                                  -path './.claude/*.yml' -o \
+                                  -path './.claude/*.yaml' -o \
+                                  -path './.flow/*.yml' -o \
+                                  -path './.flow/*.yaml' \) \
+                       -type f 2>/dev/null || true)
+
+          if [ -z "$YAML_FILES" ]; then
+            echo "No YAML config files found to validate"
+            echo "::notice::No YAML configuration files found in expected locations"
+            exit 0
+          fi
+
+          # Count files
+          FILE_COUNT=$(echo "$YAML_FILES" | wc -l | tr -d ' ')
+          echo "Found $FILE_COUNT YAML file(s) to validate"
+          echo ""
+
+          # Validate each file
+          ERRORS=0
+          WARNINGS=0
+
+          for file in $YAML_FILES; do
+            if [ -f "$file" ]; then
+              echo "Checking: $file"
+
+              # Use node with js-yaml for validation
+              node -e "
+                const yaml = require('js-yaml');
+                const fs = require('fs');
+                try {
+                  const content = fs.readFileSync('$file', 'utf8');
+                  const doc = yaml.load(content, { filename: '$file' });
+                  if (doc === null || doc === undefined) {
+                    console.log('  Warning: File is empty or contains only comments');
+                    process.exit(2);  // Warning exit code
+                  }
+                  console.log('  ✓ Valid YAML');
+                } catch (e) {
+                  console.error('  ✗ Error:', e.message);
+                  if (e.mark) {
+                    console.error('    Line:', e.mark.line + 1, 'Column:', e.mark.column + 1);
+                  }
+                  process.exit(1);
+                }
+              " 2>&1 || {
+                EXIT_CODE=$?
+                if [ $EXIT_CODE -eq 1 ]; then
+                  ERRORS=$((ERRORS + 1))
+                elif [ $EXIT_CODE -eq 2 ]; then
+                  WARNINGS=$((WARNINGS + 1))
+                fi
+              }
+            fi
+          done
+
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Validation Summary: $FILE_COUNT files checked"
+          echo "  ✓ Valid: $((FILE_COUNT - ERRORS - WARNINGS))"
+          if [ $WARNINGS -gt 0 ]; then
+            echo "  ⚠ Warnings: $WARNINGS"
+          fi
+          if [ $ERRORS -gt 0 ]; then
+            echo "  ✗ Errors: $ERRORS"
+            exit 1
+          fi
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: Validate teach-config schema
+        if: hashFiles('.flow/teach-config.yml') != ''
+        run: |
+          echo "Validating teach-config.yml schema..."
+
+          # Check required structure
+          node -e "
+            const yaml = require('js-yaml');
+            const fs = require('fs');
+
+            const content = fs.readFileSync('.flow/teach-config.yml', 'utf8');
+            const config = yaml.load(content);
+
+            const errors = [];
+
+            // Check for scholar section
+            if (!config.scholar) {
+              errors.push('Missing required \"scholar\" section');
+            } else {
+              // Validate course_info
+              if (config.scholar.course_info) {
+                const { level, difficulty } = config.scholar.course_info;
+
+                if (level && !['undergraduate', 'graduate'].includes(level)) {
+                  errors.push('Invalid course_info.level: must be \"undergraduate\" or \"graduate\"');
+                }
+
+                if (difficulty && !['beginner', 'intermediate', 'advanced'].includes(difficulty)) {
+                  errors.push('Invalid course_info.difficulty: must be \"beginner\", \"intermediate\", or \"advanced\"');
+                }
+              }
+
+              // Validate defaults
+              if (config.scholar.defaults) {
+                const { exam_format, lecture_format } = config.scholar.defaults;
+                const validFormats = ['markdown', 'md', 'quarto', 'qmd', 'latex', 'tex', 'json'];
+
+                if (exam_format && !validFormats.includes(exam_format)) {
+                  errors.push('Invalid defaults.exam_format: ' + exam_format);
+                }
+
+                if (lecture_format && !validFormats.includes(lecture_format)) {
+                  errors.push('Invalid defaults.lecture_format: ' + lecture_format);
+                }
+              }
+
+              // Validate style
+              if (config.scholar.style) {
+                const { tone } = config.scholar.style;
+
+                if (tone && !['formal', 'conversational'].includes(tone)) {
+                  errors.push('Invalid style.tone: must be \"formal\" or \"conversational\"');
+                }
+              }
+            }
+
+            if (errors.length > 0) {
+              console.error('Schema validation failed:');
+              errors.forEach(e => console.error('  ✗ ' + e));
+              process.exit(1);
+            }
+
+            console.log('✓ teach-config.yml schema is valid');
+          "
+
+      - name: Validate teaching-style schema
+        if: hashFiles('.flow/teaching-style.yml') != ''
+        run: |
+          echo "Validating teaching-style.yml schema..."
+
+          node -e "
+            const yaml = require('js-yaml');
+            const fs = require('fs');
+
+            const content = fs.readFileSync('.flow/teaching-style.yml', 'utf8');
+            const style = yaml.load(content);
+
+            const errors = [];
+            const warnings = [];
+
+            // Check for required sections
+            if (!style.teaching_style) {
+              errors.push('Missing required \"teaching_style\" section');
+            } else {
+              const ts = style.teaching_style;
+
+              // Validate philosophy section
+              if (ts.philosophy) {
+                if (ts.philosophy.approach && typeof ts.philosophy.approach !== 'string') {
+                  errors.push('philosophy.approach must be a string');
+                }
+              }
+
+              // Validate pedagogy section
+              if (ts.pedagogy) {
+                if (ts.pedagogy.scaffolding && !['minimal', 'moderate', 'extensive'].includes(ts.pedagogy.scaffolding)) {
+                  errors.push('pedagogy.scaffolding must be \"minimal\", \"moderate\", or \"extensive\"');
+                }
+              }
+
+              // Validate tone section
+              if (ts.tone) {
+                if (ts.tone.formality && !['casual', 'conversational', 'formal', 'academic'].includes(ts.tone.formality)) {
+                  errors.push('tone.formality must be \"casual\", \"conversational\", \"formal\", or \"academic\"');
+                }
+              }
+
+              // Validate notation section for math courses
+              if (ts.notation) {
+                if (ts.notation.math_style && !['inline', 'display', 'mixed'].includes(ts.notation.math_style)) {
+                  warnings.push('notation.math_style should be \"inline\", \"display\", or \"mixed\"');
+                }
+              }
+            }
+
+            if (warnings.length > 0) {
+              console.log('Warnings:');
+              warnings.forEach(w => console.log('  ⚠ ' + w));
+            }
+
+            if (errors.length > 0) {
+              console.error('Schema validation failed:');
+              errors.forEach(e => console.error('  ✗ ' + e));
+              process.exit(1);
+            }
+
+            console.log('✓ teaching-style.yml schema is valid');
+          "
+
+  # ============================================================================
+  # Job 2: Check YAML/JSON Synchronization
+  # ============================================================================
+  sync-check:
+    name: Sync Check (YAML to JSON)
+    runs-on: ubuntu-latest
+    needs: validate-configs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          else
+            npm install -g js-yaml
+          fi
+
+      - name: Check sync status
+        id: sync-status
+        run: |
+          echo "Checking YAML to JSON sync status..."
+
+          # Find YAML files
+          YAML_FILES=$(find . \( -path './content/lesson-plans/*.yml' -o \
+                                  -path './content/lesson-plans/*.yaml' -o \
+                                  -path './.claude/*.yml' -o \
+                                  -path './.claude/*.yaml' \) \
+                       -type f 2>/dev/null || true)
+
+          if [ -z "$YAML_FILES" ]; then
+            echo "No YAML files found to check sync status"
+            echo "sync_needed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          OUT_OF_SYNC=0
+          NEVER_SYNCED=0
+          IN_SYNC=0
+          TOTAL=0
+          OUT_OF_SYNC_LIST=""
+
+          for yaml_file in $YAML_FILES; do
+            if [ -f "$yaml_file" ]; then
+              TOTAL=$((TOTAL + 1))
+
+              # Get corresponding JSON file path
+              json_file="${yaml_file%.*}.json"
+              json_file="${json_file%.yml}.json"
+              json_file="${json_file%.yaml}.json"
+
+              if [ ! -f "$json_file" ]; then
+                echo "○ $yaml_file (never synced)"
+                NEVER_SYNCED=$((NEVER_SYNCED + 1))
+                OUT_OF_SYNC_LIST="${OUT_OF_SYNC_LIST}${yaml_file},"
+              else
+                # Compare content by parsing both files
+                DIFF_RESULT=$(node -e "
+                  const yaml = require('js-yaml');
+                  const fs = require('fs');
+
+                  try {
+                    const yamlContent = fs.readFileSync('$yaml_file', 'utf8');
+                    const yamlData = yaml.load(yamlContent);
+                    const jsonData = JSON.parse(fs.readFileSync('$json_file', 'utf8'));
+
+                    // Compare by serializing both
+                    const yamlJson = JSON.stringify(yamlData, null, 2);
+                    const existingJson = JSON.stringify(jsonData, null, 2);
+
+                    if (yamlJson === existingJson) {
+                      console.log('in-sync');
+                    } else {
+                      console.log('out-of-sync');
+                    }
+                  } catch (e) {
+                    console.log('error:' + e.message);
+                  }
+                " 2>&1)
+
+                if [ "$DIFF_RESULT" = "in-sync" ]; then
+                  echo "✓ $yaml_file"
+                  IN_SYNC=$((IN_SYNC + 1))
+                elif [[ "$DIFF_RESULT" == error:* ]]; then
+                  echo "✗ $yaml_file (${DIFF_RESULT#error:})"
+                  OUT_OF_SYNC=$((OUT_OF_SYNC + 1))
+                  OUT_OF_SYNC_LIST="${OUT_OF_SYNC_LIST}${yaml_file},"
+                else
+                  echo "✗ $yaml_file (out of sync)"
+                  OUT_OF_SYNC=$((OUT_OF_SYNC + 1))
+                  OUT_OF_SYNC_LIST="${OUT_OF_SYNC_LIST}${yaml_file},"
+                fi
+              fi
+            fi
+          done
+
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Sync Status Summary:"
+          echo "  Total files: $TOTAL"
+          echo "  ✓ In sync: $IN_SYNC"
+          if [ $NEVER_SYNCED -gt 0 ]; then
+            echo "  ○ Never synced: $NEVER_SYNCED"
+          fi
+          if [ $OUT_OF_SYNC -gt 0 ]; then
+            echo "  ✗ Out of sync: $OUT_OF_SYNC"
+          fi
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+          # Set outputs
+          if [ $((OUT_OF_SYNC + NEVER_SYNCED)) -gt 0 ]; then
+            echo "sync_needed=true" >> "$GITHUB_OUTPUT"
+            echo "out_of_sync_count=$((OUT_OF_SYNC + NEVER_SYNCED))" >> "$GITHUB_OUTPUT"
+          else
+            echo "sync_needed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report sync instructions
+        if: steps.sync-status.outputs.sync_needed == 'true'
+        run: |
+          echo "Files need synchronization. Run locally:"
+          echo ""
+          echo "  node scripts/sync-yaml.js --force"
+          echo ""
+          echo "Or use the Scholar CLI:"
+          echo ""
+          echo "  npx @data-wise/scholar sync"
+          echo ""
+          echo "Then commit and push the changes."
+
+      - name: Warn on PR if out of sync
+        if: steps.sync-status.outputs.sync_needed == 'true' && github.event_name == 'pull_request'
+        run: |
+          echo "::warning::YAML/JSON files are out of sync. Please run sync locally and commit changes."
+
+      - name: Fail on push if out of sync
+        if: steps.sync-status.outputs.sync_needed == 'true' && github.event_name == 'push'
+        run: |
+          echo "::error::YAML/JSON files are out of sync! Run 'node scripts/sync-yaml.js --force' locally and commit the changes."
+          exit 1
+
+  # ============================================================================
+  # Summary Job
+  # ============================================================================
+  summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [validate-configs, sync-check]
+    if: always()
+
+    steps:
+      - name: Report status
+        env:
+          VALIDATE_STATUS: ${{ needs.validate-configs.result }}
+          SYNC_STATUS: ${{ needs.sync-check.result }}
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Scholar Config Validation Complete"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+          if [ "$VALIDATE_STATUS" = "success" ]; then
+            echo "✓ YAML Validation: Passed"
+          else
+            echo "✗ YAML Validation: $VALIDATE_STATUS"
+          fi
+
+          if [ "$SYNC_STATUS" = "success" ]; then
+            echo "✓ Sync Check: Passed"
+          else
+            echo "✗ Sync Check: $SYNC_STATUS"
+          fi
+
+          echo ""
+          echo "For setup instructions, see:"
+          echo "  https://github.com/Data-Wise/scholar/blob/main/docs/github-actions-setup.md"
+
+          # Fail if any job failed
+          if [ "$VALIDATE_STATUS" != "success" ] || [ "$SYNC_STATUS" != "success" ]; then
+            exit 1
+          fi

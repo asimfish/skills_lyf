@@ -1,0 +1,20 @@
+# Test fixture: Valid YAML but type mismatches
+# - String where array expected
+# - Number where string expected
+# - Array where string expected
+
+schema_version: "2.0"
+
+metadata:
+  id: "week-01"
+  week: "1"  # Should be number
+
+content:
+  topics: "Descriptive Statistics, Probability"  # Should be array
+  learning_objectives:
+    - "Understand statistics"
+  materials: "Textbook Chapter 1"  # Should be array
+  duration: "30"  # Should be number
+
+style:
+  teaching_approach: ["interactive"]  # Should be string

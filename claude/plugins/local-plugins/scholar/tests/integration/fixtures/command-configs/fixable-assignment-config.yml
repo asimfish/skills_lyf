@@ -1,0 +1,13 @@
+# Assignment config with syntax errors
+# For testing auto-fix workflow
+
+week: 4
+title:    "Homework 4 - Regression"
+learning_objectives:
+  - id: "LO1"
+    description:   "Apply linear regression"
+    cognitive_level: "apply"
+topics:
+  - name:   "Simple Linear Regression"
+    difficulty: "intermediate"
+    content_type: "application"

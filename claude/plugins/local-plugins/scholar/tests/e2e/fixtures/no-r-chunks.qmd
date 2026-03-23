@@ -1,0 +1,16 @@
+---
+title: "Narrative Only"
+format: html
+---
+
+# A Pure Narrative Document
+
+This document has no R code chunks. It is entirely text.
+
+## Background
+
+Some background information about the topic.
+
+## Conclusion
+
+A conclusion paragraph.

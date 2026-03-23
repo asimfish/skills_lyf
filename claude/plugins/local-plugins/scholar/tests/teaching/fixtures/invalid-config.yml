@@ -1,0 +1,11 @@
+scholar:
+  course_info:
+    level: "postdoc"  # Invalid: should be undergraduate or graduate
+    difficulty: "expert"  # Invalid: should be beginner, intermediate, or advanced
+
+  defaults:
+    exam_format: "pdf"  # Invalid: should be md, qmd, tex, or json
+    lecture_format: "docx"  # Invalid format
+
+  style:
+    tone: "casual"  # Invalid: should be formal or conversational

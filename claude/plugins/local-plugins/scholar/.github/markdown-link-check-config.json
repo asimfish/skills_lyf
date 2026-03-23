@@ -1,0 +1,159 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^http://localhost"
+    },
+    {
+      "pattern": "^http://127.0.0.1"
+    },
+    {
+      "pattern": "^https://example.com"
+    },
+    {
+      "pattern": "^https://api.example.com"
+    },
+    {
+      "pattern": "^https://canvas.example.edu"
+    },
+    {
+      "pattern": "^https://github.com/.*/pull/[0-9]+"
+    },
+    {
+      "pattern": "^https://github.com/.*/issues/[0-9]+"
+    },
+    {
+      "pattern": "^https://www.canvas.instructure.com"
+    },
+    {
+      "pattern": "^https://canvas.instructure.com"
+    },
+    {
+      "pattern": "^https://github.com/.*/issues$"
+    },
+    {
+      "pattern": "^https://github.com/.*/releases$"
+    },
+    {
+      "pattern": "^https://github.com/Data-Wise/scholar/releases/tag/"
+    },
+    {
+      "pattern": "^https://github.com/Data-Wise/scholar/compare/"
+    },
+    {
+      "pattern": "^https://medium.com"
+    },
+    {
+      "pattern": "^https://www.researchgate.net"
+    },
+    {
+      "pattern": "^https://quarto.org/docs/$"
+    },
+    {
+      "pattern": "^https://github.com/Data-Wise/scholar-examples"
+    },
+    {
+      "pattern": "^mailto:"
+    },
+    {
+      "pattern": "^https://console.anthropic.com"
+    },
+    {
+      "pattern": "^https://www.zotero.org/settings"
+    },
+    {
+      "pattern": "^https://github.com/user/"
+    },
+    {
+      "pattern": "^https://github.com/username/"
+    },
+    {
+      "pattern": "^https://github.com/your-org/"
+    },
+    {
+      "pattern": "^https://doi.org/10.xxxx"
+    },
+    {
+      "pattern": "^https://www.biosciencewriters.com"
+    },
+    {
+      "pattern": "^https://www.cell.com"
+    },
+    {
+      "pattern": "^https://psycnet.apa.org"
+    },
+    {
+      "pattern": "^https://my.ilstu.edu"
+    },
+    {
+      "pattern": "^https://github.com/Data-Wise/scholar/discussions"
+    },
+    {
+      "pattern": "^https://github.com/Data-Wise/scholar/pulls$"
+    },
+    {
+      "pattern": "^https://github.com/Data-Wise/scholar/issues/new"
+    },
+    {
+      "pattern": "^file:///"
+    },
+    {
+      "pattern": "^https://github.com/Data-Wise/scholar/blob/main/tests"
+    },
+    {
+      "pattern": "^https://clinicaltrials.gov"
+    },
+    {
+      "pattern": "^https://www.equator-network.org"
+    },
+    {
+      "pattern": "^#"
+    },
+    {
+      "pattern": "^https://doi.org/10.1002/"
+    },
+    {
+      "pattern": "^https://aspredicted.org"
+    },
+    {
+      "pattern": "%7B%7B"
+    },
+    {
+      "pattern": "\\{\\{.*\\}\\}"
+    },
+    {
+      "pattern": "batch-quizzes.md$"
+    },
+    {
+      "pattern": "weekly-lectures.md$"
+    },
+    {
+      "pattern": "syllabus.md$"
+    },
+    {
+      "pattern": "generators/README.md$"
+    },
+    {
+      "pattern": "templates/README.md$"
+    }
+  ],
+  "replacementPatterns": [
+    {
+      "pattern": "^/",
+      "replacement": "{{BASEURL}}/"
+    }
+  ],
+  "httpHeaders": [
+    {
+      "urls": ["https://github.com", "https://api.github.com"],
+      "headers": {
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "Mozilla/5.0 (compatible; LinkChecker/1.0)"
+      }
+    }
+  ],
+  "timeout": "20s",
+  "retryOn429": true,
+  "retryCount": 3,
+  "fallbackRetryDelay": "30s",
+  "aliveStatusCodes": [200, 206, 301, 302, 307, 308]
+}

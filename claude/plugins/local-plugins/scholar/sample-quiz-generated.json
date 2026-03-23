@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "template_type": "exam",
+  "metadata": {
+    "title": "Weekly Quiz - Regression Analysis",
+    "date": "2025-01-12"
+  },
+  "title": "Weekly Quiz #3 - Regression Analysis",
+  "exam_type": "quiz",
+  "duration_minutes": 20,
+  "instructions": "Answer all questions. This is a closed-book quiz. You have 20 minutes.",
+  "questions": [
+    {
+      "id": "Q1",
+      "type": "multiple-choice",
+      "text": "In simple linear regression $Y = \\beta_0 + \\beta_1 X + \\epsilon$, what does $\\beta_1$ represent?",
+      "options": [
+        "The slope of the regression line",
+        "The y-intercept",
+        "The correlation coefficient",
+        "The residual variance"
+      ],
+      "points": 4,
+      "difficulty": "easy",
+      "topic": "simple linear regression"
+    },
+    {
+      "id": "Q2",
+      "type": "multiple-choice",
+      "text": "What does $R^2$ measure in a regression model?",
+      "options": [
+        "The proportion of variance in Y explained by X",
+        "The correlation between X and Y",
+        "The standard error of the regression",
+        "The significance of the slope parameter"
+      ],
+      "points": 4,
+      "difficulty": "easy",
+      "topic": "model assessment"
+    },
+    {
+      "id": "Q3",
+      "type": "true-false",
+      "text": "A high $R^2$ value always indicates that the regression model is appropriate and fits the data well.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "points": 3,
+      "difficulty": "medium",
+      "topic": "model assessment"
+    },
+    {
+      "id": "Q4",
+      "type": "true-false",
+      "text": "In regression analysis, the residuals should be normally distributed for valid inference.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "points": 3,
+      "difficulty": "easy",
+      "topic": "assumptions"
+    },
+    {
+      "id": "Q5",
+      "type": "multiple-choice",
+      "text": "Which diagnostic plot is most useful for detecting heteroscedasticity?",
+      "options": [
+        "Residuals vs. Fitted Values",
+        "Q-Q plot",
+        "Histogram of residuals",
+        "Scatterplot of X vs. Y"
+      ],
+      "points": 4,
+      "difficulty": "medium",
+      "topic": "diagnostics"
+    },
+    {
+      "id": "Q6",
+      "type": "short-answer",
+      "text": "If the correlation between X and Y is $r = -0.85$, what does this tell you about the relationship? Include the direction and strength.",
+      "points": 6,
+      "difficulty": "easy",
+      "topic": "correlation"
+    },
+    {
+      "id": "Q7",
+      "type": "numerical",
+      "text": "A regression model has SSE = 150 and SST = 200. Calculate the $R^2$ value.",
+      "points": 6,
+      "difficulty": "medium",
+      "topic": "model assessment"
+    }
+  ],
+  "answer_key": {
+    "Q1": "A",
+    "Q2": "A",
+    "Q3": "B",
+    "Q4": "A",
+    "Q5": "A",
+    "Q6": "There is a strong negative linear relationship between X and Y. The negative sign indicates that as X increases, Y tends to decrease. The magnitude of 0.85 indicates a strong relationship (close to -1).",
+    "Q7": {
+      "answer": "0.25",
+      "solution": "$R^2 = 1 - \\frac{SSE}{SST} = 1 - \\frac{150}{200} = 1 - 0.75 = 0.25$"
+    }
+  },
+  "formula_sheet": "Simple Linear Regression: $Y = \\beta_0 + \\beta_1 X + \\epsilon$\n\nCoefficient of Determination: $R^2 = 1 - \\frac{SSE}{SST}$\n\nCorrelation: $r = \\frac{\\sum(x_i - \\bar{x})(y_i - \\bar{y})}{\\sqrt{\\sum(x_i - \\bar{x})^2 \\sum(y_i - \\bar{y})^2}}$\n\nSST = SSR + SSE"
+}

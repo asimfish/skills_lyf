@@ -1,0 +1,19 @@
+# Test fixture: YAML with syntax issues
+# - Inconsistent indentation (3 spaces, 4 spaces, tabs)
+# - Trailing whitespace
+# - Mixed quotes
+
+week: 1
+title: "Introduction to Statistics"
+
+content:
+   topics:
+      - "Descriptive Statistics"
+      - 'Probability Basics'
+   objectives:
+    - "Understand mean and median"
+    - 'Calculate variance'
+
+   materials:
+    - Textbook Chapter 1
+    -  "Lecture slides"

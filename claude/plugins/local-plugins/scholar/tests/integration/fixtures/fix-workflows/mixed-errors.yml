@@ -1,0 +1,10 @@
+# Fixture: Multiple error types combined (but parseable)
+# Expected: Auto-fixer should handle all error types
+
+# Schema: Missing 'week' (required)
+title:    "Introduction to Statistics"
+learning_objectives:
+  - id: "LO1"
+    description:   "Understand statistics"
+    cognitive_level: "understand"
+topics: "Descriptive Statistics"  # Type: should be array
