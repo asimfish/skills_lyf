@@ -159,7 +159,32 @@ install.sh 只新增文件，**不覆盖已有配置**：
 ### 第三步：填入密钥
 
 ```bash
-#
+# 编辑 Claude Code 配置，填入你的 API Token
+vim ~/.claude/settings.json
+```
+
+找到这一行并替换：
+```json
+"ANTHROPIC_AUTH_TOKEN": "YOUR_ANTHROPIC_AUTH_TOKEN"
+```
+
+如果使用自定义 API 代理（如 aipor.cc），同时修改：
+```json
+"ANTHROPIC_BASE_URL": "https://your-proxy.com"
+```
+
+### 第四步（可选）：把本仓库 skill 同步到所有工具
+
+```bash
+# 先预览转换结果（不修改任何 live 目录）
+python3 tools/sync.py stage
+
+# 确认无误后，增量部署（推荐，不覆盖已有）
+python3 tools/sync.py deploy --merge
+
+# 或启动后台守护进程，有新 skill 时自动 stage
+python3 tools/sync.py watch
+```
 
 ---
 
